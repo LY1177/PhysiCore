@@ -24,36 +24,7 @@ function requireAuth(req, res, next) {
   if (!req.session.user) return res.status(401).json({ error: "Not authenticated" });
   next();
 }
-/*---*/
-function runSQL(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    if (kind === "pg") {
-      db.query(sql, params)
-        .then((r) => resolve(r))
-        .catch(reject);
-    } else {
-      db.run(sql, params, function (err) {
-        if (err) reject(err);
-        else resolve(this); // this.lastID
-      });
-    }
-  });
-}
 
-function getSQL(sql, params = []) {
-  return new Promise((resolve, reject) => {
-    if (kind === "pg") {
-      db.query(sql, params)
-        .then((r) => resolve(r.rows[0] || null))
-        .catch(reject);
-    } else {
-      db.get(sql, params, (err, row) => {
-        if (err) reject(err);
-        else resolve(row || null);
-      });
-    }
-  });
-}
 
 /* ---------------- AUTH ---------------- */
 
@@ -114,58 +85,7 @@ app.post("/api/logout", (req, res) => {
 app.get("/api/me", (req, res) => {
   res.json({ user: req.session.user || null });
 });
-/*----*/
-app.post("/api/register", async (req, res) => {
-  try {
-    const username = String(req.body.username || "").trim();
-    const password = String(req.body.password || "");
 
-    if (username.length < 3) {
-      return res.status(400).json({ error: "Потребителското име трябва да е поне 3 символа." });
-    }
-    if (password.length < 6) {
-      return res.status(400).json({ error: "Паролата трябва да е поне 6 символа." });
-    }
-
-    // 1) проверка дали съществува
-    const existing =
-      kind === "pg"
-        ? await getSQL("SELECT id FROM users WHERE username = $1", [username])
-        : await getSQL("SELECT id FROM users WHERE username = ?", [username]);
-
-    if (existing) {
-      return res.status(409).json({ error: "Този потребител вече съществува." });
-    }
-
-    // 2) хеширане
-    const passwordHash = await bcrypt.hash(password, 10);
-
-    // 3) insert
-    let newUserId;
-
-    if (kind === "pg") {
-      const r = await runSQL(
-        "INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id",
-        [username, passwordHash]
-      );
-      newUserId = r.rows[0].id;
-    } else {
-      const r = await runSQL(
-        "INSERT INTO users (username, password_hash) VALUES (?, ?)",
-        [username, passwordHash]
-      );
-      newUserId = r.lastID;
-    }
-
-    // 4) login след регистрация
-    req.session.user = { id: newUserId, username };
-
-    return res.json({ ok: true, user: { id: newUserId, username } });
-  } catch (e) {
-    console.error("REGISTER ERROR:", e);
-    return res.status(500).json({ error: "Грешка при регистрация." });
-  }
-});
 
 /* ---------------- TASKS ---------------- */
 
