@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PhysiCore • помощник по физика</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">P</div>
+      <div>
+        <div class="brand-title">PhysiCore</div>
+        <div class="brand-sub">за 8–10 клас • задачи • формули • ясно обяснение</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+     <a class="navlink" href="/">Начало👩‍🔬</a>
+    <a class="navlink" href="/solve">Задачи📑</a>
+    <a class="navlink" href="/handbook">Помагало❗</a>
+    <a class="navlink" href="/test">Какво научих❓</a>
+    <a class="navlink" href="/igra">Време за игра🎯</a>
+      <a class="navlink" href="#" id="btnLogout" style="display:none;">Изход</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <div class="hero-left">
+        <h1>Научи физиката <span class="grad">по-лесно</span> и трупай точки.</h1>
+        <p class="lead">
+          Избираш тема → клас → решаваш тестови задачи → виждаш обяснение → следиш статистика.
+        </p>
+
+        <div class="stats-card">
+          <div class="mini">
+            <div class="mini-title">Точки</div>
+            <div class="mini-value" id="miniPoints">—</div>
+          </div>
+          <div class="mini">
+            <div class="mini-title">Верни</div>
+            <div class="mini-value" id="miniCorrect">—</div>
+          </div>
+          <div class="mini">
+            <div class="mini-title">Грешни</div>
+            <div class="mini-value" id="miniWrong">—</div>
+          </div>
+          <a class="btn primary" href="/solve" id="btnStartSolve">Започни със задачи</a>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="auth-card" id="authCard">
+          <div class="tabs">
+            <button class="tab active" data-tab="login">Вход</button>
+            <button class="tab" data-tab="register">Регистрация</button>
+          </div>
+
+          <div class="pane" id="paneLogin">
+            <form class="form" id="loginForm">
+              <label>Имейл</label>
+              <input class="input" type="email" name="email" placeholder="name@email.com" required />
+              <label>Парола</label>
+              <input class="input" type="password" name="password" placeholder="••••••••" required />
+              <button class="btn primary" type="submit">Вход</button>
+              <div class="hint" id="loginMsg"></div>
+            </form>
+          </div>
+
+          <div class="pane hidden" id="paneRegister">
+            <form class="form" id="registerForm">
+              <label>Потребителско име</label>
+              <input class="input" type="text" name="username" placeholder="physi_master" required />
+              <label>Имейл</label>
+              <input class="input" type="email" name="email" placeholder="name@email.com" required />
+              <label>Парола</label>
+              <input class="input" type="password" name="password" placeholder="мин. 6 символа" required />
+              <button class="btn primary" type="submit">Създай акаунт</button>
+              <div class="hint" id="registerMsg"></div>
+            </form>
+          </div>
+
+          <div class="userbox hidden" id="userBox">
+            <div class="user-welcome">Здравей, <b id="userName">—</b> 👋</div>
+            <div class="user-actions">
+              <a class="btn ghost" href="/solve">Към задачите</a>
+              <button class="btn danger" id="logoutBtn2">Изход</button>
+            </div>
+            <div class="hint subtle">Резултатите ти се пазят автоматично.</div>
+          </div>
+        </div>
+
+        <div class="feature-card">
+          <div class="badge">Функционално</div>
+          <h3>Меню “Задачи” + “Решаване” + “Обяснение”</h3>
+          <p>След всеки отговор получаваш ясно обяснение и точки.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

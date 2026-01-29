@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PhysiCore • Задачи</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-orb orb1"></div>
+  <div class="bg-orb orb2"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">P</div>
+      <div>
+        <div class="brand-title">PhysiCore</div>
+        <div class="brand-sub">Задачи • Теми • Точки</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <a class="navlink" href="/">Начало👩‍🔬</a>
+    <a class="navlink" href="/solve">Задачи📑</a>
+    <a class="navlink" href="/handbook">Помагало❗</a>
+    <a class="navlink" href="/test">Какво научих❓</a>
+    <a class="navlink" href="/igra">Време за игра🎯</a>
+      <button class="navlink btnlink" id="btnLogout">Изход</button>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="grid-2">
+      <div class="panel">
+        <h2>Избор</h2>
+
+        <div class="row">
+          <div class="field">
+            <label>Клас</label>
+            <select class="input" id="classSelect">
+              <option value="8">8 клас</option>
+              <option value="9">9 клас</option>
+              <option value="10">10 клас</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Тема</label>
+            <select class="input" id="topicSelect">
+              <option value="">— зареждане —</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <button class="btn primary" id="btnLoadTasks">Зареди задачите</button>
+          <button class="btn ghost" id="btnReset">Нулирай</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <h3>Моите резултати</h3>
+        <div class="stats-line">
+          <div class="pill">Точки: <b id="stPoints">—</b></div>
+          <div class="pill">Верни: <b id="stCorrect">—</b></div>
+          <div class="pill">Грешни: <b id="stWrong">—</b></div>
+          <div class="pill">Решени: <b id="stAnswered">—</b></div>
+        </div>
+        <div class="hint subtle">*Статистиката се пази за твоя профил.</div>
+      </div>
+
+      <div class="panel">
+        <div class="task-head">
+          <h2>Решаване</h2>
+          <div class="counter" id="counter">—</div>
+        </div>
+
+        <div id="taskArea" class="task-area">
+          <div class="empty">
+            Избери клас и тема, после „Зареди задачите“.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="tasks.js"></script>
+</body>
+</html>

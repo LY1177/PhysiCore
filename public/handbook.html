@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PhysiCore • Помагало</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">P</div>
+    <div>
+      <div class="brand-title">PhysiCore</div>
+      <div class="brand-sub">Интерактивно помагало</div>
+    </div>
+  </div>
+  <nav class="nav">
+   <a class="navlink" href="/">Начало👩‍🔬</a>
+    <a class="navlink" href="/solve">Задачи📑</a>
+    <a class="navlink" href="/handbook">Помагало❗</a>
+    <a class="navlink" href="/test">Какво научих❓</a>
+    <a class="navlink" href="/igra">Време за игра🎯</a>
+    <a class="navlink" href="#" id="btnLogout">Изход</a>
+  </nav>
+</header>
+
+<main class="container">
+  <h1 class="bubble-title">📕 Помагало по физика (8–10 клас)</h1>
+  <h1 class="pomagalo">Физика 8 клас</h1>
+  <hr>
+
+  <div class="handbook-grid">
+
+    <!-- МЕХАНИЧНО ДВИЖЕНИЕ -->
+    <div class="handbook-card">
+      <h2>🚗 Механично движение</h2>
+      <button class="btn ghost toggle">Покажи</button>
+
+      <div class="handbook-content hidden">
+        <p><b>Средна скорост</b></p>
+        <div class="formula">v = s / t</div>
+        <p>Път, изминат за време.</p>
+
+        <p><b>Ускорение</b></p>
+        <div class="formula">a = Δv / Δt</div>
+        <p>Колко бързо се променя скоростта.</p>
+      </div>
+    </div>
+
+    <!-- РАВНОУСКОРИТЕЛНО -->
+    <div class="handbook-card">
+      <h2>📈 Равноускорително движение</h2>
+      <button class="btn ghost toggle">Покажи</button>
+
+      <div class="handbook-content hidden">
+        <p><b>Закон за скоростта</b></p>
+        <div class="formula">v = v₀ + a·t</div>
+        <br>
+        <p><b>Закон за пътя</b></p>
+        <div class="formula">s = v₀·t + a·t² / 2</div>
+        <p>Използва се при постоянно ускорение.</p>
+      </div>
+    </div>
+
+    <!-- СВОБОДНО ПАДАНЕ -->
+    <div class="handbook-card">
+      <h2>🍎 Свободно падане</h2>
+      <button class="btn ghost toggle">Покажи</button>
+
+      <div class="handbook-content hidden">
+        <p><b>Закони за скоростта и пътя при свободно падане.</b></p>
+        <div class="formula">v = g·t</div>
+        <br>
+        <div class="formula">h = g·t² / 2</div>
+        <p>g ≈ 9.8 m/s²</p>
+        <p>В отсъствие на съпротивление на въздуха всички тела падат към земната повърхност с едно и също ускорение, което не зависи от тяхната маса, форма и обем.</p>
+      </div>
+    </div>
+
+    <!-- ЗАКОНИ НА НЮТОН -->
+    <div class="handbook-card">
+      <h2>⚖️ Закони на Нютон</h2>
+      <button class="btn ghost toggle">Покажи</button>
+
+      <div class="handbook-content hidden">
+        <p><b>Втори принцип на механиката</b></p>
+        <div class="formula">F = m·a</div>
+        <p>Равнодействащата сила е равна на произведението от масата и ускорението.</p>
+        <br>
+        <p><b>Втори принцип на механиката</b></p>
+        <div class="formula">a = F / m</div>
+        <p>Ускорението на едно тяло е правопропорционално на равнодействащата сила на приложените към тялото сили и е обратно пропорционално на масата на тялото.</p>
+      </div>
+    </div>
+
+    <!--КИНЕТИЧНА И ПОТЕНЦИАЛНА ЕНЕРГИЯ-->
+    <div class="handbook-card">
+      <h2>💡Кинетична и потенциална енергия</h2>
+      <button class="btn ghost toggle">Покажи</button>
+
+      <div class="handbook-content hidden">
+        <p><b>Кинетична енергия</b></p>
+        <div class="formula">Eк = mv^2 / 2</div>
+        <p>Движещите се тела имат енергия на движението, която се нарича кинетична енергия.</p>
+        <br>
+        <p><b>Потенциална енергия</b></p>
+        <div class="formula">Eп = mgh</div>
+        <p>Телата над земнатя повърхност могат да извършват работа, защото имат енергия, която се дължи на гравитацията.</p>
+      </div>
+    </div>
+    <!--НАЛЯГАНЕ-->
+    <div class="handbook-card">
+      <h2>💉Закон на Паскал и налягане</h2>
+      <button class="btn ghost toggle">Покажи</button>
+
+      <div class="handbook-content hidden">
+        <p><b>Закон на Паскал</b></p>
+        <div class="formula">p = F / S</div>
+        <p>Налягането, приложимо върху в затворен съд течност(или газ), се предава без изменение във всички точки от течността(газа) и върху стените на съда.</p>
+        <br>
+        <p><b>Хидростатично налягане</b></p>
+        <div class="formula">Pх = pgh</div>
+        <p>Хидростатичното налягане е равно на произведението от плътността на течността p, земното ускорение g и дълбочината h. </p>
+      </div>
+    </div>
+    <!--ТАБЛИЦИ-->
+    <div class="handbook-card">
+      <h2>Физични величини в механиката</h2>
+      <button class="btn ghost toggle">Покажи</button>
+
+      <div class="handbook-content hidden">
+        <img src="pictures/tablica_1_otpred.jpg" alt="tablica" width="300px" class="zoomable">
+      </div>
+    </div>
+    <!--ТАБЛИЦИ-->
+    <div class="handbook-card">
+      <h2>Физични закономерности</h2>
+      <button class="btn ghost toggle">Покажи</button>
+
+      <div class="handbook-content hidden">
+        <img src="pictures/tablica_1_otzad.jpg" alt="tablica" width="300px" class="zoomable">
+      </div>
+    </div>
+    <!--ТАБЛИЦИ-->
+    <div class="handbook-card">
+      <h2>Закономерности при топлинните явления</h2>
+      <button class="btn ghost toggle">Покажи</button>
+
+      <div class="handbook-content hidden">
+        <img src="pictures/tablica_2.2_otzad.jpg" alt="tablica" width="300px" class="zoomable">
+      </div>
+    </div>
+  </div>
+   <h1 class="pomagalo">Физика 9 клас</h1>
+  <hr>
+</main>
+
+<script src="handbook.js"></script>
+</body>
+</html>
