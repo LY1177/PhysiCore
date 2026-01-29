@@ -3,7 +3,6 @@ const session = require("express-session");
 const bcrypt = require("bcrypt");
 const path = require("path");
 const { initDb } = require("./database");
-const { initDb, kind } = require("./database");
 const app = express();
 const db = initDb();
 
