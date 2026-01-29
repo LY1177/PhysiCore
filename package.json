@@ -6,6 +6,7 @@
     "bcrypt": "^6.0.0",
     "express": "^5.2.1",
     "express-session": "^1.19.0",
+    "pg": "^8.17.2",
     "sqlite3": "^5.1.7"
   }
 }
