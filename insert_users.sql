@@ -1,2 +1,3 @@
-INSERT INTO tasks (class_level, topic, question, options_json, correct_index, explanation, points) VALUES
-(8,'Топлина','При свиване на газ външни сили извършват 100 kJ работа, а газът отдава на околната среда 350 kJ топлина. Колко е изменението на вътрешната енергия на газа?','["25 kJ","2,5 kJ","2500 kJ","250 kJ"]',3,'A = +100 kJ, Q = -350 kJ(отдава топлина); ΔU = Q + A; ΔU = -350 + 100 = -250 kJ; Вътрешната енергия е намаляла с 250 kJ.',3)
+UPDATE tasks
+SET topic = 'Звук'
+WHERE topic = 'Термодинамика';
