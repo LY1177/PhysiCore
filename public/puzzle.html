@@ -1,0 +1,573 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Drag & Drop Пъзел — Физика</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;background:#0b1020;color:#e8eefc}
+  header{
+    padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08);
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center
+  }
+  .pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08)}
+  button, select{
+    padding:9px 12px;border:0;border-radius:14px;background:#22c55e;color:#061014;
+    cursor:pointer;font-weight:900
+  }
+  button.secondary{background:rgba(255,255,255,.14);color:#e8eefc}
+  select{background:rgba(255, 255, 255, 0.551);color:#000000;border:1px solid rgba(255,255,255,.14)}
+  #wrap{max-width:1200px;margin:0 auto;padding:14px;display:grid;grid-template-columns: 1fr 380px;gap:14px}
+  .card{background:rgba(255,255,255,.06);border-radius:18px;padding:14px}
+  canvas{width:100%;height:560px;background:rgba(0,0,0,.18);border-radius:18px;border:1px solid rgba(255,255,255,.10)}
+  .meta{opacity:.85;line-height:1.35}
+  input[type=file]{width:100%}
+  .it{padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.10);margin-top:10px}
+  .ok{color:#22c55e;font-weight:1000}
+
+  
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;padding:18px}
+  .modal.open{display:flex}
+  .modal .box{max-width:900px;width:100%;background:#0b1020;border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:14px}
+  .modal .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  .modal canvas{height:440px}
+  #builtin{
+    display: none;
+  }
+  #size{
+    font-weight: bold;
+  }
+  #size option{
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+<header>
+  <b>🧩 Drag & Drop Пъзел</b>
+  <span class="pill">Време: <b id="time">0</b>s</span>
+  <span class="pill">Ходове: <b id="moves">0</b></span>
+  <span class="pill">Прогрес: <b id="prog">0</b>%</span>
+
+  <select id="size">
+    <option value="3">3×3 (лесно)</option>
+    <option value="4" selected>4×4 (нормално)</option>
+    <option value="5">5×5 (трудно)</option>
+  </select>
+
+  <button id="shuffle">Разбъркай</button>
+  <button class="secondary" id="builtin">Вградена физика</button>
+</header>
+
+<div id="wrap">
+  <div class="card">
+    <canvas id="c"></canvas>
+    <div class="meta" id="msg" style="margin-top:10px">
+      
+    </div>
+  </div>
+
+  <div class="card">
+    <b>Опции</b>
+
+    <div class="it">
+      <div class="meta"><b>Качи твоя снимка</b> (по желание):</div>
+      <input id="file" type="file" accept="image/*"/>
+      <div class="meta" style="margin-top:8px">След качване натисни “Разбъркай”.</div>
+    </div>
+
+    <div class="it">
+      <b>Как играеш</b>
+      <div class="meta">• Ляв клик и влачене.</div>
+      <div class="meta">• Ако парче е достатъчно близо до правилното място → залепва.</div>
+         </div>
+
+    <div class="it">
+      <b>Съвет</b>
+      <div class="meta">Започни от ъглите. После ръбовете. Накрая средата 🙂</div>
+    </div>
+  </div>
+</div>
+
+<!-- WIN MODAL -->
+<div class="modal" id="modal">
+  <div class="box">
+    <div class="row">
+      <div>
+        <div class="ok" style="font-size:20px">✅ Браво! Подреди пъзела!</div>
+      </div>
+      <button id="close" class="secondary">Затвори</button>
+    </div>
+    <canvas id="full"></canvas>
+  </div>
+</div>
+
+<script>
+(() => {
+  const el = id => document.getElementById(id);
+
+  // Canvas
+  const canvas = el("c");
+  const ctx = canvas.getContext("2d");
+  const full = el("full");
+  const fctx = full.getContext("2d");
+
+  function fit(){
+    canvas.width = Math.floor(canvas.clientWidth * devicePixelRatio);
+    canvas.height = Math.floor(canvas.clientHeight * devicePixelRatio);
+    full.width = Math.floor(full.clientWidth * devicePixelRatio);
+    full.height = Math.floor(full.clientHeight * devicePixelRatio);
+  }
+  window.addEventListener("resize", fit); fit();
+
+  const W = () => canvas.width / devicePixelRatio;
+  const H = () => canvas.height / devicePixelRatio;
+
+  
+  const timeEl=el("time"), movesEl=el("moves"), progEl=el("prog"), msgEl=el("msg");
+  const sizeEl=el("size");
+  const modal=el("modal");
+
+  // Source image 
+  const src = document.createElement("canvas");
+  const sctx = src.getContext("2d");
+  let srcReady = false;
+
+  function drawBuiltInPhysics(){
+    const S=900;
+    src.width=S; src.height=S;
+
+    const g=sctx.createLinearGradient(0,0,0,S);
+    g.addColorStop(0,"#0b1020");
+    g.addColorStop(1,"#111a33");
+    sctx.fillStyle=g;
+    sctx.fillRect(0,0,S,S);
+
+    // stars
+    sctx.fillStyle="rgba(255,255,255,.10)";
+    for(let i=0;i<170;i++){
+      const x=(i*73)%S, y=(i*131)%S;
+      sctx.fillRect(x,y,2,2);
+    }
+
+    // Title
+    sctx.fillStyle="rgba(255,255,255,.92)";
+    sctx.font="900 52px system-ui";
+    sctx.fillText("PHYSICS", 60, 95);
+
+    sctx.fillStyle="rgba(255,255,255,.75)";
+    sctx.font="700 22px system-ui";
+    sctx.fillText("формули • електрическа верига • графика", 60, 135);
+
+    // Formulas
+    sctx.fillStyle="rgba(168,85,247,.95)";
+    sctx.font="900 34px system-ui";
+    sctx.fillText("F = m·a", 70, 230);
+    sctx.fillText("U = I·R", 70, 290);
+    sctx.fillText("Q = c·m·ΔT", 70, 350);
+    sctx.fillText("1/f = 1/a + 1/b", 70, 410);
+
+    // Circuit box
+    sctx.strokeStyle="rgba(245,158,11,.9)";
+    sctx.lineWidth=8;
+    sctx.lineCap="round";
+    sctx.beginPath();
+    sctx.moveTo(520, 210); sctx.lineTo(820, 210);
+    sctx.lineTo(820, 520); sctx.lineTo(520, 520);
+    sctx.closePath();
+    sctx.stroke();
+
+    // battery
+    sctx.strokeStyle="rgba(255,255,255,.85)";
+    sctx.lineWidth=10;
+    sctx.beginPath(); sctx.moveTo(520, 300); sctx.lineTo(520, 420); sctx.stroke();
+    sctx.lineWidth=6;
+    sctx.beginPath(); sctx.moveTo(555, 330); sctx.lineTo(555, 390); sctx.stroke();
+    sctx.fillStyle="rgba(255,255,255,.8)";
+    sctx.font="800 18px system-ui";
+    sctx.fillText("батерия", 585, 370);
+
+    // Resistor zigzag
+    sctx.strokeStyle="rgba(34,197,94,.9)";
+    sctx.lineWidth=8;
+    sctx.beginPath();
+    sctx.moveTo(620, 210);
+    for(let k=0;k<6;k++){
+      const x=640 + k*22;
+      const y=(k%2===0)?190:230;
+      sctx.lineTo(x,y);
+    }
+    sctx.lineTo(760,210);
+    sctx.stroke();
+    sctx.fillStyle="rgba(34,197,94,.8)";
+    sctx.font="800 18px system-ui";
+    sctx.fillText("резистор R", 635, 170);
+
+    // Ampermeter
+    sctx.strokeStyle="rgba(59,130,246,.95)";
+    sctx.lineWidth=8;
+    sctx.beginPath(); sctx.arc(820, 365, 42, 0, Math.PI*2); sctx.stroke();
+    sctx.fillStyle="rgba(59,130,246,.9)";
+    sctx.font="900 34px system-ui";
+    sctx.fillText("A", 807, 377);
+
+    // Graph area
+    sctx.fillStyle="rgba(255,255,255,.08)";
+    sctx.fillRect(60, 520, 420, 310);
+    sctx.strokeStyle="rgba(255,255,255,.18)";
+    sctx.lineWidth=3;
+    sctx.strokeRect(60, 520, 420, 310);
+
+    sctx.strokeStyle="rgba(239,68,68,.9)";
+    sctx.lineWidth=5;
+    sctx.beginPath();
+    for(let i=0;i<=60;i++){
+      const t=i/60;
+      const x=80 + t*380;
+      const y=800 - (0.2+0.65*t*t)*260;
+      if(i===0) sctx.moveTo(x,y); else sctx.lineTo(x,y);
+    }
+    sctx.stroke();
+
+    sctx.fillStyle="rgba(255,255,255,.75)";
+    sctx.font="800 18px system-ui";
+    sctx.fillText("s(t) при a>0", 70, 548);
+
+    // Footer
+    sctx.fillStyle="rgba(255,255,255,.55)";
+    sctx.font="700 18px system-ui";
+    sctx.fillText("", 60, 870);
+
+    srcReady=true;
+  }
+
+  function useUploadedImage(img){
+    const S=900;
+    src.width=S; src.height=S;
+    const iw=img.naturalWidth, ih=img.naturalHeight;
+    const scale=Math.max(S/iw, S/ih);
+    const dw=iw*scale, dh=ih*scale;
+    const dx=(S-dw)/2, dy=(S-dh)/2;
+    sctx.clearRect(0,0,S,S);
+    sctx.drawImage(img, dx, dy, dw, dh);
+    srcReady=true;
+  }
+
+  // ---- Puzzle State ----
+  let N = Number(sizeEl.value);
+  let pieces = [];  
+  let moves = 0;
+  let placed = 0;
+  let running = false;
+  let t0 = 0;
+  let elapsed = 0;
+
+  // dragging
+  let dragging = null; 
+  let dragOffX = 0, dragOffY = 0;
+
+  function startTimer(){
+    running=true;
+    t0=performance.now();
+  }
+  function tick(){
+    if(running){
+      elapsed=(performance.now()-t0)/1000;
+      timeEl.textContent=String(Math.floor(elapsed));
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  function boardRect(){
+    // square board on left canvas
+    const w=W(), h=H();
+    const size = Math.min(w, h) - 40;
+    const x=(w-size)/2;
+    const y=(h-size)/2;
+    return {x,y,size,cell:size/N};
+  }
+
+  function makePieces(){
+    pieces=[];
+    const br=boardRect();
+    const cell=br.cell;
+
+    // correct slots
+    for(let r=0;r<N;r++){
+      for(let c=0;c<N;c++){
+        const id=r*N+c;
+        const sx = c*(src.width/N);
+        const sy = r*(src.height/N);
+        const sw = src.width/N;
+        const sh = src.height/N;
+
+        const pad=20;
+        const spawnX = (Math.random()<0.5)
+          ? (br.x - cell*1.2 + Math.random()*cell*0.8)
+          : (br.x + br.size + pad + Math.random()*Math.max(60, (W() - (br.x+br.size) - pad - cell)));
+        const spawnY = br.y + Math.random()*(br.size - cell);
+
+        pieces.push({
+          id,
+          r, c,
+          sx, sy, sw, sh,
+          x: spawnX,
+          y: spawnY,
+          w: cell,
+          h: cell,
+          locked: false
+        });
+      }
+    }
+
+    // shuffle drawing order
+    for(let i=pieces.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [pieces[i],pieces[j]]=[pieces[j],pieces[i]];
+    }
+  }
+
+  function resetGame(){
+    if(!srcReady) drawBuiltInPhysics();
+
+    N = Number(sizeEl.value);
+    moves=0; placed=0;
+    movesEl.textContent="0";
+    progEl.textContent="0";
+    msgEl.textContent="Разбъркано! Влачи парчетата в решетката.";
+
+    makePieces();
+    startTimer();
+  }
+
+  function correctPos(piece){
+    const br=boardRect();
+    return {
+      x: br.x + piece.c*br.cell,
+      y: br.y + piece.r*br.cell
+    };
+  }
+
+  function snapIfClose(piece){
+    const br=boardRect();
+    const target=correctPos(piece);
+    const dx = piece.x - target.x;
+    const dy = piece.y - target.y;
+    const dist = Math.hypot(dx,dy);
+
+    const snapDist = Math.max(10, br.cell*0.22);
+    if(dist <= snapDist){
+      piece.x = target.x;
+      piece.y = target.y;
+      if(!piece.locked){
+        piece.locked = true;
+        placed++;
+        progEl.textContent = String(Math.floor((placed/(N*N))*100));
+        msgEl.innerHTML = `✅ Поставено! <span class="ok">${placed}/${N*N}</span>`;
+        if(placed === N*N){
+          running=false;
+          showWin();
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  function pieceAt(mx,my){
+    // pick topmost piece under mouse (iterate reverse draw order)
+    for(let i=pieces.length-1;i>=0;i--){
+      const p=pieces[i];
+      if(p.locked) continue;
+      if(mx>=p.x && mx<=p.x+p.w && my>=p.y && my<=p.y+p.h){
+        return p;
+      }
+    }
+    return null;
+  }
+
+  function bringToFront(p){
+    const i=pieces.indexOf(p);
+    if(i>=0){
+      pieces.splice(i,1);
+      pieces.push(p);
+    }
+  }
+
+  function draw(){
+    const w=W(), h=H();
+    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    ctx.clearRect(0,0,w,h);
+
+    // background
+    ctx.fillStyle="rgba(255,255,255,.03)";
+    ctx.fillRect(0,0,w,h);
+
+    const br=boardRect();
+
+    // board outline
+    ctx.fillStyle="rgba(255,255,255,.04)";
+    ctx.fillRect(br.x, br.y, br.size, br.size);
+    ctx.strokeStyle="rgba(255,255,255,.16)";
+    ctx.lineWidth=3;
+    ctx.strokeRect(br.x, br.y, br.size, br.size);
+
+    // grid
+    ctx.strokeStyle="rgba(255,255,255,.10)";
+    ctx.lineWidth=1;
+    for(let i=1;i<N;i++){
+      ctx.beginPath();
+      ctx.moveTo(br.x + i*br.cell, br.y);
+      ctx.lineTo(br.x + i*br.cell, br.y + br.size);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(br.x, br.y + i*br.cell);
+      ctx.lineTo(br.x + br.size, br.y + i*br.cell);
+      ctx.stroke();
+    }
+
+    // ghost preview
+    if(srcReady){
+      ctx.globalAlpha=0.10;
+      ctx.drawImage(src, br.x, br.y, br.size, br.size);
+      ctx.globalAlpha=1;
+    }
+
+    // pieces
+    for(const p of pieces){
+      // image slice
+      if(srcReady){
+        ctx.drawImage(src, p.sx, p.sy, p.sw, p.sh, p.x, p.y, p.w, p.h);
+      } else {
+        ctx.fillStyle="rgba(255,255,255,.10)";
+        ctx.fillRect(p.x,p.y,p.w,p.h);
+      }
+      // border
+      ctx.strokeStyle = p.locked ? "rgba(34,197,94,.55)" : "rgba(255,255,255,.18)";
+      ctx.lineWidth=2;
+      ctx.strokeRect(p.x, p.y, p.w, p.h);
+    }
+
+    // text overlay
+   // ctx.fillStyle="rgba(255,255,255,.75)";
+    //ctx.font="14px system-ui";
+    //ctx.fillText("", 14, 22);
+
+    requestAnimationFrame(draw);
+  }
+
+  // WIN modal
+  function showWin(){
+    const w = full.width/devicePixelRatio;
+    const h = full.height/devicePixelRatio;
+    fctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    fctx.clearRect(0,0,w,h);
+
+    const S = Math.min(w,h);
+    const x=(w-S)/2, y=(h-S)/2;
+
+    msgEl.innerHTML = `🎉 Браво! Подреди за <b>${Math.floor(elapsed)}s</b> с <b>${moves}</b> хода.`;
+}
+
+  
+
+  // Mouse => canvas coords
+  function mousePos(evt){
+    const rect = canvas.getBoundingClientRect();
+    const mx = (evt.clientX - rect.left) * (W()/rect.width);
+    const my = (evt.clientY - rect.top) * (H()/rect.height);
+    return {mx,my};
+  }
+
+  canvas.addEventListener("mousedown",(e)=>{
+    if(!srcReady) return;
+    const {mx,my} = mousePos(e);
+    const p = pieceAt(mx,my);
+    if(!p) return;
+    dragging = p;
+    bringToFront(p);
+    dragOffX = mx - p.x;
+    dragOffY = my - p.y;
+  });
+
+  window.addEventListener("mousemove",(e)=>{
+    if(!dragging) return;
+    const rect = canvas.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) * (W()/rect.width);
+    const my = (e.clientY - rect.top) * (H()/rect.height);
+
+    dragging.x = mx - dragOffX;
+    dragging.y = my - dragOffY;
+  });
+
+  window.addEventListener("mouseup",()=>{
+    if(!dragging) return;
+    const p = dragging;
+    dragging = null;
+    moves++;
+    movesEl.textContent=String(moves);
+    snapIfClose(p);
+  });
+
+  // Touch support (optional but nice)
+  canvas.addEventListener("touchstart",(e)=>{
+    if(!srcReady) return;
+    const t=e.touches[0];
+    const rect=canvas.getBoundingClientRect();
+    const mx=(t.clientX-rect.left)*(W()/rect.width);
+    const my=(t.clientY-rect.top)*(H()/rect.height);
+    const p=pieceAt(mx,my);
+    if(!p) return;
+    dragging=p; bringToFront(p);
+    dragOffX=mx-p.x; dragOffY=my-p.y;
+    e.preventDefault();
+  }, {passive:false});
+
+  canvas.addEventListener("touchmove",(e)=>{
+    if(!dragging) return;
+    const t=e.touches[0];
+    const rect=canvas.getBoundingClientRect();
+    const mx=(t.clientX-rect.left)*(W()/rect.width);
+    const my=(t.clientY-rect.top)*(H()/rect.height);
+    dragging.x=mx-dragOffX;
+    dragging.y=my-dragOffY;
+    e.preventDefault();
+  }, {passive:false});
+
+  canvas.addEventListener("touchend",(e)=>{
+    if(!dragging) return;
+    const p=dragging; dragging=null;
+    moves++; movesEl.textContent=String(moves);
+    snapIfClose(p);
+    e.preventDefault();
+  }, {passive:false});
+
+  // Controls
+  el("shuffle").onclick = ()=> resetGame();
+  el("builtin").onclick = ()=> { drawBuiltInPhysics(); resetGame(); };
+  sizeEl.onchange = ()=> resetGame();
+
+  el("file").addEventListener("change",(e)=>{
+    const f = e.target.files && e.target.files[0];
+    if(!f) return;
+    const img = new Image();
+    img.onload = ()=>{
+      useUploadedImage(img);
+      msgEl.textContent="Снимката е заредена. Натисни “Разбъркай”.";
+    };
+    img.src = URL.createObjectURL(f);
+  });
+
+  el("close").onclick = ()=> modal.classList.remove("open");
+  modal.addEventListener("click",(e)=>{ if(e.target===modal) modal.classList.remove("open"); });
+
+  // init
+  drawBuiltInPhysics();
+  resetGame();
+  requestAnimationFrame(draw);
+})();
+</script>
+
+</body>
+</html>

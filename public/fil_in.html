@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Попълни липсващите думи — Физика (8–10 клас)</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;background:#0b1020;color:#e8eefc}
+  header{
+    padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08);
+    display:flex;gap:10px;flex-wrap:wrap;align-items:center
+  }
+  .pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08)}
+  button, select{
+    padding:9px 12px;border:0;border-radius:14px;background:#22c55e;color:#1b1200;
+    cursor:pointer;font-weight:900
+  }
+  button.secondary{background:rgba(255,255,255,.14);color:#e8eefc}
+  select{background:rgba(255,255,255,.540);color:#000000;border:1px solid rgba(255,255,255,.14)}
+  #wrap{max-width:1100px;margin:0 auto;padding:14px;display:grid;grid-template-columns: 1fr 360px;gap:14px}
+  .card{background:rgba(255,255,255,.06);border-radius:18px;padding:14px}
+  .paper{
+    background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(0,0,0,.06));
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:18px;padding:18px;min-height:360px
+  }
+  .title{font-weight:1000;font-size:20px;margin-bottom:10px}
+  .text{font-size:18px;line-height:1.85;color:rgba(255,255,255,.92)}
+  input.blank{
+    width:160px;max-width:42vw;
+    padding:8px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.18);
+    background:rgba(169, 85, 247, 0.354);color:#e8eefc;font-weight:900;
+    outline:none;margin:6px 10px;
+  }
+  input.blank.short{width:110px}
+  input.blank.tiny{width:85px}
+  input.blank.good{border-color:rgba(34,197,94,.9);background:rgba(34,197,94,.12)}
+  input.blank.bad{border-color:rgba(239,68,68,.9);background:rgba(239,68,68,.10)}
+  .meta{opacity:.85;line-height:1.35}
+  .it{padding:10px 12px;border-radius:14px;background:rgba(0,0,0,.18);border:1px solid rgba(255,255,255,.10);margin-top:10px}
+  .ok{color:#22c55e;font-weight:1000}
+  .badText{color:#ef4444;font-weight:1000}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .chip{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08);cursor:pointer;border:1px solid rgba(255,255,255,.10);font-weight:900}
+  .chip:hover{outline:2px solid rgba(168,85,247,.7)}
+  .pill1{display:none}
+  #lesson{font-weight:bold}
+  #lesson option{font-weight:bold}
+  .secondary1{display:none}
+</style>
+</head>
+<body>
+<header>
+  <b>📝 Попълни липсващите думи</b>
+  <span class="pill1">📄 Текст: <b id="idx">1</b>/<b id="tot">1</b></span>
+  <span class="pill">⏱️ <b id="time">0</b>s</span>
+  <span class="pill">⭐ Точки: <b id="score">0</b></span>
+  <span class="pill">🏆 Рекорд: <b id="best">0</b></span>
+
+  <select id="lesson">
+    <option value="sound" selected>Инфразвук и ултразвук</option>
+    <option value="electric">Електричен ток</option>
+    <option value="mechanics">Механика</option>
+  </select>
+
+  <button id="check">Провери</button>
+  <button class="secondary" id="hint">Подсказка (-25)</button>
+  <button class="secondary1" id="next">Следващ</button>
+  <button class="secondary" id="reset">Нова игра</button>
+</header>
+
+<div id="wrap">
+  <div class="card">
+    <div class="paper">
+      <div class="title" id="title">—</div>
+      <div class="text" id="text"></div>
+    </div>
+    <div class="meta" id="msg" style="margin-top:10px"></div>
+  </div>
+
+  <div class="card">
+    <b>Помощ</b>
+    <div class="it">
+      <div class="meta">Пиши с главни/малки — няма значение.</div>
+      <div class="meta">Можеш да кликнеш върху думата, за да я поставиш в активното поле.</div>
+    </div>
+
+    <div class="it">
+      <b>Бързи думи</b>
+      <div class="meta">Щракни за да не пишеш😉</div>
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <div class="it">
+      <b>Оценяване</b>
+      <div class="meta">✅ Всяко вярно поле: +40</div>
+      <div class="meta">🎯 Бонус за бързина: до +80</div>
+      <div class="meta">💡 Подсказка: -25</div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const el = id => document.getElementById(id);
+
+  const STORE_BEST="fill_blanks_best";
+  let best = Number(localStorage.getItem(STORE_BEST) || "0");
+
+  const LESSONS = {
+    sound: [
+      {
+        title:"Инфразвук и ултразвук",
+        tpl:
+          "{0} не възприема звукови вълни с честота под {1} Hz. Те се наричат {2}. " +
+          "Източници на инфразвук са вулканите, земетресенията, морските вълни и вятърът. " +
+          "Инфразвук съдържат шумовете от самолети, {3} и машини. " +
+          "{4} инфразвук е {5} за здравето на човека.",
+        answers: [
+          ["човекът","човека"],
+          ["20"],
+          ["инфразвук","инфразвуци"],
+          ["автомобили","коли"],
+          ["Силният","мощен"],
+          ["вреден","опасен"]
+        ],
+        chips:["инфразвук","автомобили","Човекът","20","опасен","вреден","Силният"]
+      }
+    ],
+    electric: [
+      {
+        title:"Електричен ток",
+        tpl:
+          "Електричният ток е {0} движение на {1} частици. Силата на тока се означава с {2} " +
+          "и се измерва в {3}. Уредът за измерване на тока се нарича {4}.",
+        answers: [
+          ["насочено","упорядъчено"],
+          ["заредени","зарядени"],
+          ["i","I"],
+          ["ампери","ампер","A","а"],
+          ["амперметър","амперметърът"]
+        ],
+        chips:["I","ампери","насочено","заредени","амперметър"]
+      }
+    ],
+    mechanics: [
+      {
+        title:"Механика — движение",
+        tpl:
+          "Скоростта се намира по формулата {0} = {1}/{2}. Ускорението е {3} на скоростта за време: " +
+          "a = {4}v/{5}t. Единицата за ускорение е {6}.",
+        answers: [
+          ["v","V"],
+          ["s","път","S"],
+          ["t","време","T"],
+          ["промяна","изменение"],
+          ["Δ","delta","d"],
+          ["Δ","delta","d"],
+          ["m/s²","m/s2","м/с²","м/с2"]
+        ],
+        chips:["v","промяна","t","s","m/s²","Δ","м/с²"]
+      }
+    ]
+  };
+
+  let lessonKey = "sound";
+  let list = LESSONS[lessonKey];
+  let index = 0;
+
+  let score = 0;
+  let startT = 0;
+  let elapsed = 0;
+  let running = false;
+
+  let activeInput = null;
+
+  const titleEl=el("title");
+  const textEl=el("text");
+  const msgEl=el("msg");
+  const idxEl=el("idx");
+  const totEl=el("tot");
+  const timeEl=el("time");
+  const scoreEl=el("score");
+  const bestEl=el("best");
+  const lessonEl=el("lesson");
+  const chipsEl=el("chips");
+
+  bestEl.textContent = best;
+
+  function norm(s){
+    return String(s || "").trim().toLowerCase().replace(/\s+/g," ");
+  }
+
+  function build(){
+    list = LESSONS[lessonKey];
+    if(!list || !list.length) return;
+
+    const item = list[index];
+    titleEl.textContent = item.title;
+    idxEl.textContent = String(index+1);
+    totEl.textContent = String(list.length);
+
+    const html = item.tpl.replace(/\{(\d+)\}/g, (_,n)=>{
+      const i = Number(n);
+      const len = (item.answers[i] && item.answers[i][0] && item.answers[i][0].length) || 6;
+      let cls="blank";
+      if(len<=3) cls+=" tiny";
+      else if(len<=6) cls+=" short";
+      return `<input class="${cls}" inputmode="text" data-i="${i}" placeholder="..." />`;
+    });
+
+    textEl.innerHTML = html;
+
+    const inputs = [...textEl.querySelectorAll("input.blank")];
+    inputs.forEach(inp=>{
+      inp.addEventListener("focus", ()=> activeInput = inp);
+      inp.addEventListener("input", ()=>{
+        inp.value = inp.value.replace(/\s{2,}/g," ");
+        inp.classList.remove("good","bad");
+      });
+      inp.addEventListener("keydown",(e)=>{
+        if(e.key==="Enter"){
+          e.preventDefault();
+          check();
+        }
+      });
+    });
+
+    activeInput = null;
+
+    chipsEl.innerHTML="";
+    (item.chips||[]).forEach(w=>{
+      const b=document.createElement("div");
+      b.className="chip";
+      b.textContent=w;
+      b.onclick=()=>{
+        if(!activeInput) return;
+        activeInput.value = w;
+        activeInput.classList.remove("good","bad");
+        activeInput.focus();
+      };
+      chipsEl.appendChild(b);
+    });
+
+    msgEl.textContent = "Попълни празните места и натисни „Провери“.";
+  }
+
+  function start(){
+    running=true;
+    startT = performance.now();
+  }
+
+  function tick(){
+    if(running){
+      elapsed = (performance.now()-startT)/1000;
+      timeEl.textContent = String(Math.floor(elapsed));
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function check(){
+    const item = list[index];
+    const inputs = [...textEl.querySelectorAll("input.blank")];
+
+    let correctCount=0;
+    let total=inputs.length;
+
+    inputs.forEach(inp=>{
+      const i = Number(inp.dataset.i);
+      const ansList = (item.answers[i] || []).map(norm);
+      const user = norm(inp.value);
+
+      const ok = ansList.includes(user);
+      inp.classList.remove("good","bad");
+      inp.classList.add(ok ? "good" : "bad");
+      if(ok) correctCount++;
+    });
+
+    const gained = correctCount * 40;
+    const speedBonus = Math.max(0, Math.floor(80 - elapsed*3));
+    const totalGain = gained + (correctCount===total ? speedBonus : 0);
+    score += totalGain;
+
+    if(correctCount === total){
+      msgEl.innerHTML = `✅ <span class="ok">Всичко е вярно!</span> +${totalGain} точки (вкл. бонус ${speedBonus}). Натисни „Следващ“.`;
+    } else {
+      msgEl.innerHTML = `❌ <span class="badText">${correctCount}/${total} верни</span>. +${totalGain} точки. Поправи червените и пробвай пак.`;
+    }
+
+    scoreEl.textContent = String(score);
+
+    if(score > best){
+      best = score;
+      localStorage.setItem(STORE_BEST, String(best));
+      bestEl.textContent = String(best);
+    }
+  }
+
+  function hint(){
+    const item = list[index];
+    const inputs = [...textEl.querySelectorAll("input.blank")];
+    const firstWrong = inputs.find(inp=>{
+      const i=Number(inp.dataset.i);
+      const ansList=(item.answers[i]||[]).map(norm);
+      return !ansList.includes(norm(inp.value));
+    });
+    if(!firstWrong){
+      msgEl.textContent="Няма грешни полета за подсказка 🙂";
+      return;
+    }
+    if(score < 25){
+      msgEl.textContent="Нямаш 25 точки за подсказка.";
+      return;
+    }
+    score -= 25;
+    scoreEl.textContent = String(score);
+
+    const i=Number(firstWrong.dataset.i);
+    const right = item.answers[i][0];
+    firstWrong.value = right;
+    firstWrong.classList.remove("bad");
+    firstWrong.classList.add("good");
+    msgEl.innerHTML = `💡 Подсказка: попълних поле #${i+1} (-25).`;
+    firstWrong.focus();
+  }
+
+  function next(){
+    index++;
+    if(index >= list.length){
+      msgEl.innerHTML = `🏁 Урокът свърши! Точки: <b>${score}</b>. Можеш да смениш урок или „Нова игра“.`;
+      index = list.length-1;
+      return;
+    }
+    startT = performance.now();
+    build();
+  }
+
+  function reset(){
+    score=0;
+    scoreEl.textContent="0";
+    elapsed=0;
+    timeEl.textContent="0";
+    index=0;
+    startT = performance.now();
+    build();
+    msgEl.textContent="Нова игра!";
+  }
+
+  el("check").onclick=check;
+  el("hint").onclick=hint;
+  el("next").onclick=next;
+  el("reset").onclick=reset;
+
+  lessonEl.onchange=()=>{
+    lessonKey = lessonEl.value;
+    index=0;
+    score=0;
+    scoreEl.textContent="0";
+    elapsed=0;
+    timeEl.textContent="0";
+    startT = performance.now();
+    build();
+    msgEl.textContent="Сменен урок.";
+  };
+
+  build();
+  start();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

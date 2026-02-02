@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8"/>
+<title>Решетка с думи v2 — Физика</title>
+<style>
+  body{margin:0;font-family:system-ui,sans-serif;background:#0b1020;color:#e8eefc}
+  header{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  button{padding:9px 12px;border:0;border-radius:12px;background:#22c55e;color:#1b1200;cursor:pointer;font-weight:900}
+  button.secondary{background:rgba(255,255,255,.14);color:#e8eefc}
+  select{padding:9px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255, 255, 255, 0.551);color:#000000; }
+  .pill{padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.08)}
+
+  #wrap{
+    max-width:1080px;
+    margin:0 auto;
+    padding:16px;
+
+    display:grid;
+    grid-template-columns: 520px 1fr;
+    gap:16px;
+
+    justify-content:center;
+    align-items:start;
+  }
+
+  .card{background:rgba(255,255,255,.06);border-radius:16px;padding:20px;text-align:center;}
+
+  #grid{
+    --cell: 46px;                 
+    display:grid;
+    grid-auto-rows: var(--cell); 
+    gap:2px;
+    justify-content:center;
+  }
+  #lvl{
+    font-weight: bold;
+  }
+  #lvl option{
+    font-weight: bold;
+  }
+  .cell{
+    background:rgba(255,255,255,.08);
+    border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    user-select:none;
+    font-weight:900;
+
+
+    font-size: clamp(12px, calc(var(--cell) * 0.38), 20px);
+  }
+  .cell.sel{outline:2px solid rgba(59,130,246,.95)}
+  .cell.found{background:rgba(34,197,94,.25)}
+
+  .word{padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.07);margin:8px 0}
+  .word.done{outline:2px solid rgba(34,197,94,.85);opacity:.85}
+  .meta{opacity:.85}
+</style>
+</head>
+<body>
+<header>
+  <b>🔎 Решетка с думи</b>
+  <span class="pill">⏱️ <b id="time">0</b>s</span>
+  <span class="pill">⭐ <b id="score">0</b></span>
+  <span class="pill">✅ <b id="found">0</b>/<b id="total">0</b></span>
+
+  <select id="lvl">
+    <option value="10">Ниво 1 (10x10)</option>
+    <option value="12" selected>Ниво 2 (12x12)</option>
+    <option value="14">Ниво 3 (14x14)</option>
+  </select>
+
+  <button id="new">Нова</button>
+  <button class="secondary" id="hint">Подсказка (-30)</button>
+  <button class="secondary" id="save">Запази</button>
+  <button class="secondary" id="load">Продължи</button>
+</header>
+
+<div id="wrap">
+  <div class="card">
+    <div id="grid"></div>
+    <div class="meta" id="msg" style="margin-top:10px"></div>
+  </div>
+  <div class="card">
+    <b>Думи</b>
+    <div id="list"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const STORE="wordgrid_v2_save";
+  const alphabet="АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЬЮЯ";
+  const bank=[
+    "СИЛА","МАСА","СКОРОСТ","ПЪТ","ВРЕМЕ","ЕНЕРГИЯ","РАБОТА","МОЩНОСТ",
+    "НАЛЯГАНЕ","ЗАРЯД","ТОК","НАПРЕЖЕНИЕ","СЪПРОТИВЛЕНИЕ","ВЪЛНА","ЧЕСТОТА",
+    "ПЕРИОД","ОПТИКА","ИМПУЛС","ИНЕРЦИЯ","ПЛЪТНОСТ"
+  ];
+
+  const dirs=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+  const el=id=>document.getElementById(id);
+
+  let SIZE=12, grid=[], cellEls=[], targetWords=[], found=new Set();
+  let score=0, elapsed=0, running=true, t0=performance.now(), base=0;
+
+  const gridEl=el("grid"), listEl=el("list"), msg=el("msg");
+  const timeEl=el("time"), scoreEl=el("score"), foundEl=el("found"), totalEl=el("total");
+
+  const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+  const choice=s=>s[rnd(0,s.length-1)];
+  const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
+
+
+  function updateCellSize(){
+
+    const card = gridEl.parentElement; 
+    const st = getComputedStyle(card);
+    const padX = parseFloat(st.paddingLeft) + parseFloat(st.paddingRight);
+
+    const available = Math.max(200, card.clientWidth - padX);
+
+    const gap = 2; 
+    let cell = Math.floor((available - (SIZE - 1) * gap) / SIZE);
+
+    cell = Math.max(24, Math.min(52, cell));
+
+    gridEl.style.setProperty("--cell", cell + "px");
+
+    gridEl.style.gridTemplateColumns = `repeat(${SIZE}, ${cell}px)`;
+  }
+
+  window.addEventListener("resize", () => {
+    updateCellSize();
+  });
+
+  function emptyGrid(){ grid=Array.from({length:SIZE},()=>Array.from({length:SIZE},()=> "")); }
+
+  function canPlace(word,r,c,dr,dc){
+    for(let i=0;i<word.length;i++){
+      const rr=r+dr*i, cc=c+dc*i;
+      if(rr<0||rr>=SIZE||cc<0||cc>=SIZE) return false;
+      const ch=grid[rr][cc];
+      if(ch && ch!==word[i]) return false;
+    }
+    return true;
+  }
+  function place(word){
+    for(let tries=0;tries<400;tries++){
+      const [dr,dc]=choice(dirs);
+      const r=rnd(0,SIZE-1), c=rnd(0,SIZE-1);
+      if(!canPlace(word,r,c,dr,dc)) continue;
+      for(let i=0;i<word.length;i++) grid[r+dr*i][c+dc*i]=word[i];
+      return true;
+    }
+    return false;
+  }
+  function fillRandom(){
+    for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+      if(!grid[r][c]) grid[r][c]=choice(alphabet);
+    }
+  }
+
+  function render(){
+    gridEl.innerHTML="";
+
+    updateCellSize();
+
+    cellEls=[];
+    for(let r=0;r<SIZE;r++){
+      cellEls[r]=[];
+      for(let c=0;c<SIZE;c++){
+        const d=document.createElement("div");
+        d.className="cell";
+        d.textContent=grid[r][c];
+        d.dataset.r=r; d.dataset.c=c;
+        gridEl.appendChild(d);
+        cellEls[r][c]=d;
+      }
+    }
+    listEl.innerHTML="";
+    for(const w of targetWords){
+      const it=document.createElement("div");
+      it.className="word";
+      it.id=`w-${w}`;
+      it.textContent=w;
+      listEl.appendChild(it);
+    }
+    totalEl.textContent=targetWords.length;
+    foundEl.textContent=found.size;
+    scoreEl.textContent=score;
+  }
+
+  function newPuzzle(){
+    SIZE = Number(el("lvl").value);
+    found=new Set();
+    score=0;
+    elapsed=0; base=0; t0=performance.now(); running=true;
+
+    emptyGrid();
+    targetWords=[];
+    const picked = shuffle(bank).slice(0, Math.min(10, Math.floor(SIZE/2)+4));
+    for(const w of picked){
+      if(place(w)) targetWords.push(w);
+    }
+    fillRandom();
+    msg.textContent="Маркирай дума с влачене по права линия.";
+    render();
+  }
+
+  // selection
+  let dragging=false, start=null, path=[];
+  const clearSel=()=>document.querySelectorAll(".cell.sel").forEach(x=>x.classList.remove("sel"));
+
+  function linePath(r0,c0,r1,c1){
+    const dr=Math.sign(r1-r0), dc=Math.sign(c1-c0);
+    const lenR=Math.abs(r1-r0), lenC=Math.abs(c1-c0);
+    if(!(dr===0 || dc===0 || lenR===lenC)) return [];
+    const len=Math.max(lenR,lenC);
+    const out=[];
+    for(let i=0;i<=len;i++){
+      const rr=r0+dr*i, cc=c0+dc*i;
+      if(rr<0||rr>=SIZE||cc<0||cc>=SIZE) return [];
+      out.push({r:rr,c:cc});
+    }
+    return out;
+  }
+  const pathToWord=p=>p.map(x=>grid[x.r][x.c]).join("");
+
+  gridEl.addEventListener("mousedown", e=>{
+    const cell=e.target.closest(".cell"); if(!cell) return;
+    dragging=true;
+    start={r:+cell.dataset.r,c:+cell.dataset.c};
+    clearSel();
+    path=[start];
+    cell.classList.add("sel");
+  });
+  gridEl.addEventListener("mousemove", e=>{
+    if(!dragging||!start) return;
+    const cell=e.target.closest(".cell"); if(!cell) return;
+    const r1=+cell.dataset.r, c1=+cell.dataset.c;
+    const p=linePath(start.r,start.c,r1,c1);
+    if(!p.length) return;
+    clearSel();
+    path=p;
+    for(const q of p){
+      if(!cellEls[q.r][q.c].classList.contains("found")) cellEls[q.r][q.c].classList.add("sel");
+    }
+  });
+  window.addEventListener("mouseup", ()=>{
+    if(!dragging) return;
+    dragging=false;
+    clearSel();
+    if(!path.length) return;
+
+    const w1=pathToWord(path);
+    const w2=w1.split("").reverse().join("");
+    const hit=targetWords.find(w=>w===w1||w===w2);
+
+    if(hit && !found.has(hit)){
+      found.add(hit);
+      const bonus=Math.max(0, 40 - Math.floor(elapsed));
+      score += hit.length*10 + bonus;
+      for(const q of path) cellEls[q.r][q.c].classList.add("found");
+      const it=el(`w-${hit}`); if(it) it.classList.add("done");
+      msg.innerHTML=`✅ Открита дума: <b>${hit}</b> (+${hit.length*10+bonus})`;
+    } else {
+      score = Math.max(0, score-5);
+      msg.textContent="❌ Няма такава дума ( -5 ).";
+    }
+
+    foundEl.textContent=found.size;
+    scoreEl.textContent=score;
+
+    if(found.size === targetWords.length){
+      running=false;
+      score += 120;
+      scoreEl.textContent=score;
+      msg.innerHTML=`🎉 <b>ПОБЕДА!</b> Време: ${Math.floor(elapsed)}s • Точки: <b>${score}</b>`;
+      save();
+    }
+
+    path=[]; start=null;
+  });
+
+  // hint
+  function hint(){
+    if(score < 30){ msg.textContent="Нямаш 30 точки за подсказка."; return; }
+    const next = targetWords.find(w=>!found.has(w));
+    if(!next){ msg.textContent="Всички думи са намерени."; return; }
+    score -= 30; scoreEl.textContent=score;
+
+    function findWord(word){
+      for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+        for(const [dr,dc] of dirs){
+          let ok=true;
+          const p=[];
+          for(let i=0;i<word.length;i++){
+            const rr=r+dr*i, cc=c+dc*i;
+            if(rr<0||rr>=SIZE||cc<0||cc>=SIZE){ ok=false; break; }
+            if(grid[rr][cc]!==word[i]){ ok=false; break; }
+            p.push({r:rr,c:cc});
+          }
+          if(ok) return p;
+        }
+      }
+      return null;
+    }
+    const p=findWord(next);
+    if(!p){ msg.textContent="Не намерих път (рядко)."; return; }
+    msg.innerHTML=`💡 Подсказка за: <b>${next}</b> (-30)`;
+    p.forEach(q=>cellEls[q.r][q.c].classList.add("sel"));
+    setTimeout(()=>p.forEach(q=>cellEls[q.r][q.c].classList.remove("sel")), 900);
+  }
+
+  // timer
+  function tick(){
+    if(running){
+      elapsed=(performance.now()-t0)/1000 + base;
+      timeEl.textContent=Math.floor(elapsed);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // save/load
+  function save(){
+    localStorage.setItem(STORE, JSON.stringify({
+      SIZE, grid, targetWords, found:[...found], score, elapsed
+    }));
+    msg.textContent="💾 Запазено.";
+  }
+  function load(){
+    const raw=localStorage.getItem(STORE);
+    if(!raw){ msg.textContent="Няма запис."; return; }
+    const s=JSON.parse(raw);
+    SIZE=s.SIZE; grid=s.grid; targetWords=s.targetWords; found=new Set(s.found||[]);
+    score=s.score||0; elapsed=s.elapsed||0;
+    base=elapsed; t0=performance.now(); running=true;
+
+    el("lvl").value=String(SIZE);
+    render();
+
+    for(const w of found){
+      const it=el(`w-${w}`); if(it) it.classList.add("done");
+    }
+    foundEl.textContent=found.size;
+    scoreEl.textContent=score;
+    msg.textContent="▶️ Продължено.";
+  }
+
+  el("new").onclick=newPuzzle;
+  el("hint").onclick=hint;
+  el("save").onclick=save;
+  el("load").onclick=load;
+
+  newPuzzle();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
