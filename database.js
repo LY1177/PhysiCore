@@ -11,14 +11,35 @@ function openDb() {
   return db;
 }
 
+function ensureUserRoleColumn(db) {
+  // Ако users таблицата вече съществува без role, добавяме колоната.
+  db.all("PRAGMA table_info(users);", (err, rows) => {
+    if (err || !rows) return;
+    const hasRole = rows.some((r) => r.name === "role");
+    if (hasRole) return;
+
+    db.run("ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'student';", (e2) => {
+      if (e2) console.error("Role column migrate error:", e2.message || e2);
+    });
+  });
+}
+
 function initDb() {
   const db = openDb();
-  const schema = fs.readFileSync(SCHEMA_PATH, "utf-8");
-  db.exec(schema, (err) => {
-    if (err) console.error("Schema init error:", err);
-  });
+  try {
+    const schema = fs.readFileSync(SCHEMA_PATH, "utf-8");
+    if (schema && schema.trim()) {
+      db.exec(schema, (err) => {
+        if (err) console.error("Schema init error:", err);
+        ensureUserRoleColumn(db);
+      });
+    } else {
+      ensureUserRoleColumn(db);
+    }
+  } catch (e) {
+    ensureUserRoleColumn(db);
+  }
   return db;
 }
 
 module.exports = { initDb };
-

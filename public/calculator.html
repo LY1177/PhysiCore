@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Калкулатор</title>
+<style>
+:root{
+--bg0:#070a12;--bg1:#0b1020;--card:rgba(255,255,255,.06);
+--stroke:rgba(255,255,255,.10);--text:#eaf1ff;
+--muted:rgba(234,241,255,.6);--accent:#997ae1;
+--shadow:0 20px 60px rgba(80, 38, 164, 0.6);--rad:18px}
+*{box-sizing:border-box}
+body{
+margin:0;min-height:100vh;color:var(--text);
+font-family:system-ui,Segoe UI,Roboto,Arial;
+background:#0b1020;}
+body:before{
+content:"";position:fixed;inset:0;
+background:
+linear-gradient(to right,rgba(255,255,255,.05) 1px,transparent 1px),
+linear-gradient(to bottom,rgba(255,255,255,.05) 1px,transparent 1px);
+background-size:44px 44px;opacity:.12;pointer-events:none;
+mask-image:radial-gradient(650px 450px at 50% 30%,#000 55%,transparent 78%)}
+
+.wrap{max-width:900px;margin:auto;padding:50px 16px;display:flex;flex-direction:column;gap:20px; }
+h1{text-align:center;font-size:34px;margin:0}
+.sub{text-align:center;color:var(--muted);font-size:14px}
+
+.card{
+background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.04));
+border:1px solid var(--stroke);
+border-radius:var(--rad);
+box-shadow:var(--shadow);
+backdrop-filter:blur(12px)}
+
+.tabs{display:flex;gap:10px;padding:18px;flex-wrap:wrap; }
+.tab{
+padding:10px 14px;border-radius:12px;
+border:1px solid rgba(255,255,255,.12);
+background:rgba(255,255,255,.04);
+color:var(--muted);cursor:pointer;font-weight:800}
+.tab.active{
+background:#997ae1;
+border-color:rgba(30,144,255,.5);color:#ffffff}
+
+.formula{
+margin:0 18px 16px;
+padding:18px;border-radius:14px;
+background:rgba(255,255,255,.03);
+border:1px solid rgba(255,255,255,.08);
+text-align:center;font-size:22px;font-weight:900;color:var(--accent)}
+
+.content{padding:0 18px 18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px; }
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+
+.field{display:flex;flex-direction:column;gap:6px;}
+label{font-size:12px;color:var(--muted);}
+.inputWrap{position:relative}
+input{
+width:100%;padding:14px 50px 14px 14px;
+border-radius:14px;
+border:1px solid rgba(255,255,255,.12);
+background: rgb(44, 49, 87);
+color:#fff;font-size:14px}
+.unit{
+position:absolute;right:12px;top:50%;
+transform:translateY(-50%);
+font-size:12px;color:var(--muted)}
+
+.actions{display:flex;gap:10px;margin-top:16px}
+button{
+flex:1;padding:14px;border-radius:14px;
+border:1px solid rgba(255,255,255,.14);
+background:rgba(255,255,255,.05);
+color:#fff;font-weight:900;cursor:pointer}
+.primary{
+background:#997ae1;
+border-color:rgba(30,144,255,.6)}
+
+.result{
+margin-top:14px;padding:14px;border-radius:14px;
+background:rgb(44, 49, 87);
+border: 1px solid rgba(255,255,255,.12);
+display:flex;justify-content:space-between;align-items:center}
+.result b{color:var(--muted);font-size:12px}
+.value{font-size:20px;font-weight:900}
+.err{color:#ff6b81}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+<h1>📝 Калкулатор</h1>
+<div class="sub">Избери формула и въведи стойности</div>
+
+<div class="card">
+<div class="tabs" id="tabs"></div>
+<div class="formula" id="formula"></div>
+
+<div class="content">
+<div class="grid" id="fields"></div>
+
+<div class="actions">
+<button class="primary" onclick="calc()">Изчисли →</button>
+<button onclick="resetAll()">Нулирай</button>
+</div>
+
+<div class="result">
+<div>
+<b>Резултат</b><br>
+<span id="meta" style="font-size:12px;color:var(--muted)">—</span>
+</div>
+<div class="value" id="result">—</div>
+</div>
+</div>
+</div>
+</div>
+
+<script>
+const F=[
+{name:"Скорост",formula:"v = s / t",
+out:{u:"m/s",k:"v"},in:[["s","Разстояние","m"],["t","Време","s"]],
+f:x=>x.t?x.s/x.t:null},
+
+{name:"Сила",formula:"F = m · a",
+out:{u:"N",k:"F"},in:[["m","Маса","kg"],["a","Ускорение","m/s²"]],
+f:x=>x.m*x.a},
+
+{name:"Кинетична енергия",formula:"Eₖ = ½ m v²",
+out:{u:"J",k:"Eₖ"},in:[["m","Маса","kg"],["v","Скорост","m/s"]],
+f:x=>0.5*x.m*x.v*x.v},
+
+{name:"Потенциална енергия",formula:"Eₚ = m g h",
+out:{u:"J",k:"Eₚ"},in:[["m","Маса","kg"],["g","g","m/s²"],["h","Височина","m"]],
+f:x=>x.m*x.g*x.h},
+
+{name:"Закон на Ом",formula:"V = I R",
+out:{u:"V",k:"V"},in:[["I","Ток","A"],["R","Съпротивление","Ω"]],
+f:x=>x.I*x.R},
+
+{name:"Плътност",formula:"ρ = m / V",
+out:{u:"kg/m³",k:"ρ"},in:[["m","Маса","kg"],["V","Обем","m³"]],
+f:x=>x.V?x.m/x.V:null}
+];
+
+let cur=F[0],vals={};
+
+const tabs=document.getElementById("tabs"),
+formula=document.getElementById("formula"),
+fields=document.getElementById("fields"),
+res=document.getElementById("result"),
+meta=document.getElementById("meta");
+
+function render(){
+tabs.innerHTML="";
+F.forEach(f=>{
+let b=document.createElement("div");
+b.className="tab"+(f===cur?" active":"");
+b.textContent=f.name;
+b.onclick=()=>{cur=f;vals={};render()};
+tabs.appendChild(b)});
+formula.textContent=cur.formula;
+fields.innerHTML="";
+cur.in.forEach(i=>{
+fields.innerHTML+=`
+<div class="field">
+<label>${i[1]}</label>
+<div class="inputWrap">
+<input oninput="vals['${i[0]}']=parseFloat(this.value)||0">
+<div class="unit">${i[2]}</div>
+</div></div>`});
+res.textContent="—";meta.textContent="—"}
+function calc(){
+let x={};cur.in.forEach(i=>x[i[0]]=vals[i[0]]||0);
+let r=cur.f(x);
+if(r===null||!isFinite(r)){
+res.innerHTML='<span class="err">Грешка</span>';meta.textContent="Невалидни данни";return}
+res.textContent=(Math.abs(r)>1000?r.toFixed(3):r.toFixed(6))+" "+cur.out.u;
+meta.textContent=cur.out.k}
+function resetAll(){vals={};render()}
+render();
+</script>
+</body>
+</html>

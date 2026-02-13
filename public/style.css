@@ -16,7 +16,7 @@
 }
 
 *{box-sizing:border-box}
-html,body{height:100%}
+html,body{height:100%;}
 body{
   overflow: visible;
   margin:0;
@@ -51,7 +51,8 @@ body{
 .orb1{ width:520px; height:520px; left:-120px; top:-160px; background: rgba(120,81,255,.35); border-radius:50%;}
 .orb2{ width:520px; height:520px; right:-160px; top:80px; background: rgba(46,229,157,.22); border-radius:50%;}
 
-.container{max-width:1100px; margin:0 auto; padding:22px}
+.container{max-width:1100px; margin:0 auto; padding:22px; }
+.container4{max-width: 1100px; margin: 0 auto; padding: 22px;}
 .topbar{
   display:flex; align-items:center; justify-content:space-between;
   padding:14px 22px;
@@ -65,9 +66,10 @@ body{
 .logo{
   width:44px; height:44px; border-radius:14px;
   display:grid; place-items:center;
-  background: linear-gradient(135deg, rgba(120,81,255,.9), rgba(46,229,157,.8));
+  background: linear-gradient(90deg, #8B5CF6, #ffffff);
   box-shadow: var(--shadow);
   font-weight:900;
+  color: black;
 }
 .brand-title{font-weight:900; letter-spacing:.2px}
 .brand-sub{font-size:12px; color:var(--muted2)}
@@ -91,7 +93,7 @@ body{
 }
 .hero-left h1{font-size:44px; margin:0 0 10px}
 .grad{
-  background: linear-gradient(90deg, rgba(120,81,255,1), rgba(46,229,157,1));
+  background: linear-gradient(90deg, #8B5CF6, #ffffff);
   -webkit-background-clip:text; background-clip:text; color:transparent;
 }
 .lead{color:var(--muted); font-size:16px; line-height:1.6; max-width:54ch}
@@ -167,7 +169,8 @@ label{font-size:12px; color:var(--muted2)}
 .btn:active{transform: translateY(1px)}
 .btn.primary{
   border: none;
-  background: linear-gradient(135deg, rgba(120,81,255,1), rgba(46,229,157,1));
+  background: linear-gradient(90deg, #8B5CF6, #ffffff);
+  color: black;
 }
 .btn.ghost{background: rgba(255,255,255,.05)}
 .btn.danger{background: rgba(255,92,122,.10); border-color: rgba(255,92,122,.25)}
@@ -272,6 +275,14 @@ label{font-size:12px; color:var(--muted2)}
   box-shadow: var(--shadow);
 }
 
+.handbook-card{
+  padding:16px;
+  border-radius:18px;
+  background: rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.14);
+  box-shadow: var(--shadow);
+}
+
 .handbook-content{
   margin-top:12px;
   animation: fadeIn .3s ease;
@@ -280,7 +291,7 @@ label{font-size:12px; color:var(--muted2)}
 .formula{
   font-size:18px;
   font-weight:900;
-  background: linear-gradient(90deg,#7a6cff,#2ee59d);
+  background: linear-gradient(90deg, #8B5CF6, #ffffff);
   color:#000;
   padding:10px;
   border-radius:12px;
@@ -309,9 +320,7 @@ label{font-size:12px; color:var(--muted2)}
   align-items: center;
   justify-content: center;
   z-index: 9999;
-}
-
-
+} 
 .image-overlay img{
   max-width: 90%;
   max-height: 90%;
@@ -329,9 +338,7 @@ label{font-size:12px; color:var(--muted2)}
   display: inline-block;
   padding: 14px 22px;
   border-radius: 999px;
-  background:
-    radial-gradient(120% 120% at 30% 20%, rgba(255,255,255,.35), transparent 40%),
-    linear-gradient(135deg, #7c8cff, #2ee59d);
+  background: linear-gradient(90deg, #8B5CF6, #ffffff);
   color: #0b1020;
   font-weight: 700;
   box-shadow: 0 14px 40px rgba(0,0,0,.35);
@@ -372,12 +379,12 @@ label{font-size:12px; color:var(--muted2)}
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #7a5cff, #2ee59d);
+  background: linear-gradient(90deg, #8B5CF6, #ffffff);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 800;
-  color: #ffffff;
+  color: #000000;
 }
 
 .logo-text {
@@ -435,12 +442,240 @@ label{font-size:12px; color:var(--muted2)}
   }
 }
 
-.page{
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+
+
+/* ===== Teacher dashboard extras ===== */
+.teacher-grid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+@media (max-width: 900px){
+  .teacher-grid{ grid-template-columns: 1fr; }
+}
+.teacher-panel{
+  background: rgba(18,28,46,0.55);
+  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 18px 45px rgba(0,0,0,0.35);
+}
+.teacher-panel h2{
+  margin: 0 0 10px;
+}
+.table{
+  width:100%;
+  border-collapse: collapse;
+  overflow:hidden;
+  border-radius: 14px;
+}
+.table th, .table td{
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  text-align: left;
+  font-size: .95rem;
+}
+.table th{ opacity: .85; }
+.table tr:hover td{ background: rgba(255,255,255,0.04); }
+.badge{
+  display:inline-flex;
+  align-items:center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: .85rem;
+  background: rgba(120,81,255,0.18);
+  border: 1px solid rgba(120,81,255,0.25);
+}
+.note{
+  opacity: .78;
+  line-height: 1.55;
 }
 
-.page-content{
-  flex: 1;
+.name{
+  font-size: 1.1rem;
+  color: white;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.email{
+  font-size: 1.1rem;
+  color: white;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.textarea{
+  font-size: 1.1rem;
+  color: white;
+  display: block;
+  margin-bottom: 6px;
+}
+
+/* INPUT полета */
+.name1,
+.email1{
+  height: 44px;
+  width: 100%;
+  max-width: 420px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(44, 49, 87, 0.95);
+  border: 1px solid rgba(255,255,255,.14);
+  color: var(--text);
+  outline: none;
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+/* TEXTAREA */
+.textarea1{
+  width: 100%;
+  max-width: 420px;
+  height: 170px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(44, 49, 87, 0.95);
+  border: 1px solid rgba(255,255,255,.14);
+  color: var(--text);
+  outline: none;
+  resize: none;
+  transition: border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+
+/* Focus ефект */
+.name1:focus,
+.email1:focus,
+.textarea1:focus{
+  border-color: rgba(46,229,157,.55);
+  box-shadow: 0 0 0 3px rgba(46,229,157,.14);
+  background: rgba(44, 49, 87, 1);
+}
+
+/* Бутон */
+.btnsub{
+  width: 100%;
+  max-width: 420px;
+  height: 48px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #8B5CF6, #ffffff);
+  color: #0b1020;
+  font-weight: 900;
+  cursor: pointer;
+  transition: transform .08s ease, filter .15s ease;
+}
+
+.btnsub:hover{
+  filter: brightness(1.05);
+}
+
+.btnsub:active{
+  transform: translateY(1px);
+}
+
+/* Контейнер на формата – без absolute, за да не се чупи на различни екрани */
+.container2{
+  max-width: 520px;
+  margin: 30px auto;
+  padding: 18px;
+}
+
+/* Мобилно */
+@media (max-width: 520px){
+  .container1{
+    padding: 14px;
+    margin: 18px auto;
+  }
+}
+
+/* Текст на въпроса */
+.question-contact{
+  font-size: 1.1rem;
+  font-weight:400;
+  margin-bottom: 14px;
+  color: var(--text);
+}
+
+/* Опция (label) – изглежда като бутон */
+.option{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border-radius: 14px;
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.12);
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease, transform .08s ease;
+  font-weight: 600;
+  color: var(--text);
+  width: 100%;
+  max-width: 420px;
+}
+
+/* Hover ефект */
+.option:hover{
+  border-color: rgba(120,81,255,.45);
+  background: rgba(255,255,255,.08);
+}
+
+/* Скриваме стандартния radio */
+.option input[type="radio"]{
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.4);
+  display: grid;
+  place-items: center;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Вътрешната точка */
+.option input[type="radio"]::before{
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: transparent;
+  transition: background .2s ease;
+}
+
+/* Когато е избрано */
+.option input[type="radio"]:checked{
+  border-color: rgba(46,229,157,.8);
+}
+
+.option input[type="radio"]:checked::before{
+  background: rgba(46,229,157,1);
+}
+
+/* Активна опция (цялото поле светва) */
+.option:has(input[type="radio"]:checked){
+  border-color: rgba(46,229,157,.55);
+  background: rgba(46,229,157,.12);
+}
+
+.panel1{
+  background: var(--card);
+  border:1px solid var(--stroke);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  align-items: center;
+  padding-left: 25px;
+  padding-bottom: 15px;
+}
+
+.kontakth1{
+  min-height: 1vh;              
+  display: flex;
+  align-items: center;            
+  justify-content: center;  
+  margin-right: 20px;
 }

@@ -13,7 +13,7 @@
 
 <header class="topbar">
   <div class="brand">
-    <div class="logo">P</div>
+    <div class="#"><img src="pictures/logo.png" style="height: 50px; width: 45px;"></div>
     <div>
       <div class="brand-title">PhysiCore</div>
       <div class="brand-sub">Моето развитие</div>
@@ -26,21 +26,52 @@
     <a class="navlink" href="/handbook">Помагало❗</a>
     <a class="navlink" href="/test">Какво научих❓</a>
     <a class="navlink" href="/igra">Време за игра🎯</a>
+    <a class="navlink" href="/contact">Контакти🔎</a>
+    <a class="navlink teacher-only" href="/teacher" style="display:none;">Учител👩‍🏫</a>
     <a class="navlink" href="#" id="btnLogout">Изход</a>
   </nav>
 </header>
 
 <main class="container">
   <section class="panel">
-    <h1>📌 Какво научих</h1>
+    <h1>📝 Тест </h1>
     <p class="lead">
-      Тази страница ще показва какво съм усвоил по физика –
-      теми, формули и напредък във времето.
+      Генерирай тест по клас със случайни въпроси от всички теми.
+      После можеш да го изтеглиш като PDF (чрез печат).
     </p>
 
-    <div class="empty" style="margin-top:20px;">
-      🔧 Тази секция е в процес на разработка.<br>
-      Скоро тук ще се появят обобщения, прогрес и постигнати знания.
+    <div class="row" style="margin-top:12px;">
+      <div class="field" style="min-width:220px;">
+        <label>Клас</label>
+        <select class="input" id="testClass">
+          <option value="8" selected>8 клас</option>
+          <option value="9">9 клас</option>
+          <option value="10">10 клас</option>
+        </select>
+      </div>
+
+      <div class="field" style="min-width:220px;">
+        <label>Брой въпроси</label>
+        <select class="input" id="testCount">
+          <option value="8">8</option>
+          <option value="10" selected>10</option>
+          <option value="12">12</option>
+          <option value="15">15</option>
+          <option value="20">20</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px;">
+      <button class="btn primary" id="btnGenTest">Генерирай тест</button>
+      <button class="btn ghost" id="btnPdf" disabled>Изтегли PDF</button>
+      <span class="hint" id="testHint"></span>
+    </div>
+
+    <div class="divider"></div>
+
+    <div id="testArea" class="task-area">
+      <div class="empty">Натисни „Генерирай тест“, за да се появят въпросите.</div>
     </div>
   </section>
 </main>
@@ -48,7 +79,7 @@
   <div class="footer-inner">
     <div class="footer-left">
       <div class="footer-logo">
-        <span class="logo-circle">P</span>
+        <span class="#"><img src="pictures/logo.png" style="height: 50px; width: 45px;"></span>
         <span class="logo-text">PhysiCore</span>
       </div>
       <p class="footer-desc">
@@ -63,6 +94,7 @@
       <a href="/handbook.html">Помагало❗</a>
       <a href="/test.html">Какво научих❓</a>
       <a href="/igra.html">Време за игра🎯</a>
+      <a href="/contact.html">Контакти🔎</a>
     </div>
 
     <div class="footer-links">
@@ -77,5 +109,7 @@
     © 2026 PhysiCore · Всички права запазени
   </div>
 </footer>
+<script src="role-ui.js"></script>
+<script src="test.js"></script>
 </body>
 </html>

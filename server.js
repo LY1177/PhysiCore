@@ -3,6 +3,7 @@ const session = require("express-session");
 const bcrypt = require("bcrypt");
 const path = require("path");
 const { initDb } = require("./database");
+
 const app = express();
 const db = initDb();
 
@@ -25,6 +26,11 @@ function requireAuth(req, res, next) {
   next();
 }
 
+function requireTeacher(req, res, next) {
+  if (!req.session.user) return res.status(401).json({ error: "Not authenticated" });
+  if (req.session.user.role !== "teacher") return res.status(403).json({ error: "Forbidden" });
+  next();
+}
 
 /* ---------------- AUTH ---------------- */
 
@@ -42,8 +48,8 @@ app.post("/api/register", async (req, res) => {
     const password_hash = await bcrypt.hash(password, 10);
 
     db.run(
-      "INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)",
-      [username.trim(), email.trim().toLowerCase(), password_hash],
+      "INSERT INTO users (username, email, password_hash, role) VALUES (?, ?, ?, ?)",
+      [username.trim(), email.trim().toLowerCase(), password_hash, "student"],
       function (err) {
         if (err) {
           const msg = String(err.message || "");
@@ -53,7 +59,7 @@ app.post("/api/register", async (req, res) => {
           return res.status(500).json({ error: "Грешка при регистрация." });
         }
 
-        req.session.user = { id: this.lastID, username: username.trim() };
+        req.session.user = { id: this.lastID, username: username.trim(), role: "student" };
         return res.json({ ok: true, user: req.session.user });
       }
     );
@@ -66,16 +72,21 @@ app.post("/api/login", (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ error: "Липсват данни." });
 
-  db.get("SELECT id, username, password_hash FROM users WHERE email = ?", [email.trim().toLowerCase()], async (err, row) => {
-    if (err) return res.status(500).json({ error: "Сървърна грешка." });
-    if (!row) return res.status(401).json({ error: "Невалиден имейл или парола." });
+  db.get(
+    "SELECT id, username, password_hash, role FROM users WHERE email = ?",
+    [email.trim().toLowerCase()],
+    async (err, row) => {
+      if (err) return res.status(500).json({ error: "Сървърна грешка." });
+      if (!row) return res.status(401).json({ error: "Невалиден имейл или парола." });
 
-    const ok = await bcrypt.compare(password, row.password_hash);
-    if (!ok) return res.status(401).json({ error: "Невалиден имейл или парола." });
+      const ok = await bcrypt.compare(password, row.password_hash);
+      if (!ok) return res.status(401).json({ error: "Невалиден имейл или парола." });
 
-    req.session.user = { id: row.id, username: row.username };
-    return res.json({ ok: true, user: req.session.user });
-  });
+      req.session.user = {id: row.id, username: row.username, role: row.role ?? "student"};
+
+      return res.json({ ok: true, user: req.session.user });
+    }
+  );
 });
 
 app.post("/api/logout", (req, res) => {
@@ -83,7 +94,22 @@ app.post("/api/logout", (req, res) => {
 });
 
 app.get("/api/me", (req, res) => {
-  res.json({ user: req.session.user || null });
+  if (!req.session.user) return res.json({ user: null });
+
+  db.get(
+    "SELECT id, username, role FROM users WHERE id = ?",
+    [req.session.user.id],
+    (err, row) => {
+      if (err || !row) return res.json({ user: req.session.user });
+
+      const role = String(row.role || "student").trim().toLowerCase();
+      req.session.user.role = role;
+
+      res.json({
+        user: { id: row.id, username: row.username, role }
+      });
+    }
+  );
 });
 
 
@@ -126,6 +152,30 @@ app.get("/api/tasks", requireAuth, (req, res) => {
   );
 });
 
+// Случаен тест: задачи от всички теми за даден клас
+app.get("/api/random-test", requireAuth, (req, res) => {
+  const classLevel = Number(req.query.class);
+  const count = Math.max(1, Math.min(50, Number(req.query.count || 10)));
+  if (![8, 9, 10].includes(classLevel)) return res.status(400).json({ error: "Невалиден клас." });
+
+  db.all(
+    "SELECT id, class_level, topic, question, options_json, points FROM tasks WHERE class_level = ? ORDER BY RANDOM() LIMIT ?",
+    [classLevel, count],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: "Грешка при генериране на тест." });
+      const tasks = rows.map((t) => ({
+        id: t.id,
+        class_level: t.class_level,
+        topic: t.topic,
+        question: t.question,
+        options: JSON.parse(t.options_json),
+        points: t.points,
+      }));
+      res.json({ tasks, classLevel, count: tasks.length });
+    }
+  );
+});
+
 app.post("/api/submit", requireAuth, (req, res) => {
   const userId = req.session.user.id;
   const taskId = Number(req.body.taskId);
@@ -158,7 +208,6 @@ app.post("/api/submit", requireAuth, (req, res) => {
   });
 });
 
-
 app.get("/api/stats", requireAuth, (req, res) => {
   const userId = req.session.user.id;
 
@@ -177,6 +226,69 @@ app.get("/api/stats", requireAuth, (req, res) => {
     }
   );
 });
+
+/* ---------------- TEACHER MODE ---------------- */
+
+// Учителска страница (само ако role=teacher)
+app.get("/teacher", (req, res) => {
+  if (!req.session.user) return res.redirect("/");
+  if (req.session.user.role !== "teacher") return res.redirect("/");
+  return res.sendFile(path.join(__dirname, "public", "teacher.html"));
+});
+
+// Обобщение: най-бъркани теми
+app.get("/api/teacher/overview", requireTeacher, (req, res) => {
+  const sql = `
+    SELECT t.topic,
+           COUNT(r.task_id) AS attempts,
+           SUM(CASE WHEN r.is_correct = 0 THEN 1 ELSE 0 END) AS wrongs
+    FROM results r
+    JOIN tasks t ON t.id = r.task_id
+    GROUP BY t.topic
+    ORDER BY wrongs DESC, attempts DESC
+    LIMIT 12;
+  `;
+
+  db.all(sql, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: "DB error" });
+    res.json({ topWrongTopics: rows });
+  });
+});
+
+// Класация по точки
+app.get("/api/teacher/leaderboard", requireTeacher, (req, res) => {
+  const sql = `
+    SELECT u.username,
+           COALESCE(SUM(r.points_earned), 0) AS points,
+           COALESCE(SUM(r.is_correct), 0) AS correct,
+           COALESCE(SUM(CASE WHEN r.is_correct=0 THEN 1 ELSE 0 END), 0) AS wrong
+    FROM users u
+    LEFT JOIN results r ON r.user_id = u.id
+    GROUP BY u.id
+    ORDER BY points DESC, correct DESC
+    LIMIT 25;
+  `;
+
+  db.all(sql, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: "DB error" });
+    res.json({ leaderboard: rows });
+  });
+});
+
+// Списък с потребители (без пароли)
+app.get("/api/teacher/users", requireTeacher, (req, res) => {
+  db.all(
+    "SELECT id, username, email, role, created_at FROM users ORDER BY id DESC LIMIT 200",
+    [],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: "DB error" });
+      res.json({ users: rows });
+    }
+  );
+});
+
+/* ---------------- PAGES ---------------- */
+
 app.get("/handbook", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "handbook.html"));
 });
@@ -188,13 +300,10 @@ app.get("/igra", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "igra.html"));
 });
 
-app.get("/admin/users", async (req, res) => {
-  // ⚠️ временно, само за теб
-  const users = await db.query(
-    "SELECT id, username, created_at FROM users"
-  );
-  res.json(users.rows);
+app.get("/contact", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "contact.html"));
 });
+
 
 /* ---------------- FALLBACK ROUTES ---------------- */
 app.get("/", (req, res) => res.sendFile(path.join(__dirname, "public", "index.html")));

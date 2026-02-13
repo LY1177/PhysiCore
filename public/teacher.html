@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PhysiCore • Режим учител</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="#"><img src="pictures/logo.png" style="height: 50px; width: 45px;"></div>
+      <div>
+        <div class="brand-title">PhysiCore</div>
+        <div class="brand-sub">Режим учител</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <a class="navlink" href="/">Начало👩‍🔬</a>
+      <a class="navlink" href="/solve">Задачи📑</a>
+      <a class="navlink" href="/handbook">Помагало❗</a>
+      <a class="navlink" href="/test">Какво научих❓</a>
+      <a class="navlink" href="/igra">Време за игра🎯</a>
+      <a class="navlink" href="/contact">Контакти🔎</a>
+      <a class="navlink" href="/teacher" id="navTeacher" style="display:none;">Учител👩‍🏫</a>
+      <a class="navlink" href="#" id="btnLogout">Изход</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h1 class="bubble-title">👩‍🏫 Учителски панел</h1>
+    <p class="note">
+      Тук виждаш обща статистика и прогрес. <span class="badge">Пароли и хешове не се показват</span>
+    </p>
+
+    <section class="teacher-grid">
+      <div class="teacher-panel">
+        <h2>📊 Най-бъркани теми</h2>
+        <table class="table" id="tblTopWrong"></table>
+      </div>
+
+      <div class="teacher-panel">
+        <h2>🏆 Класация</h2>
+        <table class="table" id="tblLeaderboard"></table>
+      </div>
+
+      <div class="teacher-panel" style="grid-column: 1 / -1;">
+        <h2>👥 Потребители</h2>
+        <table class="table" id="tblUsers"></table>
+      </div>
+    </section>
+
+    <div id="teacherMsg" style="margin-top:16px; opacity:.75;"></div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <div class="footer-logo">
+          <span class="#"><img src="pictures/logo.png" style="height: 50px; width: 45px;"></span>
+          <span class="logo-text">PhysiCore</span>
+        </div>
+        <p class="footer-desc">Режим учител · Статистика и контрол</p>
+      </div>
+      <div class="footer-links">
+        <h4>Сигурност</h4>
+        <span>Достъп само за учител</span>
+        <span>Без чувствителни данни</span>
+      </div>
+      <div class="footer-links">
+        <h4>Проект</h4>
+        <span>НОИТ 2026</span>
+        <span>PhysiCore</span>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 PhysiCore</div>
+  </footer>
+
+  <script src="role-ui.js"></script>
+  <script src="teacher.js"></script>
+</body>
+</html>

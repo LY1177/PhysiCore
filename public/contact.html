@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="#"><img src="pictures/logo.png" style="height: 50px; width: 45px;"></div>
+      <div>
+        <div class="brand-title">PhysiCore</div>
+        <div class="brand-sub">за 8–10 клас • задачи • формули • ясно обяснение</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+     <a class="navlink" href="/">Начало👩‍🔬</a>
+    <a class="navlink" href="/solve">Задачи📑</a>
+    <a class="navlink" href="/handbook">Помагало❗</a>
+    <a class="navlink" href="/test">Какво научих❓</a>
+    <a class="navlink" href="/igra">Време за игра🎯</a>
+    <a class="navlink" href="/contact">Контакти🔎</a>
+    <a class="navlink" href="/teacher" id="navTeacher" style="display:none;">Учител👩‍🏫</a>
+    <a class="navlink" href="#" id="btnLogout">Изход</a>
+    </nav>
+  </header>
+    <main class="container2">
+      <section class="panel1">
+        <h1 class="kontakth1">Контактна форма</h1>
+    <form id="contactForm" action="https://formspree.io/f/xbdajlrk" method="POST">
+  <label class="name">
+   Име:
+   <br>
+   <br>
+    <input class="name1" type="text" name="name" required />
+  </label>
+<br>
+<label class="name">
+    Фамилия:
+    <br>
+    <br>
+    <input class="name1" type="text" name="name" required />
+  </label>
+  <br>
+  <label class="name">
+    Потребителско име:
+    <br>
+    <br>
+    <input class="name1" type="text" name="name" required />
+  </label>
+  <br>
+  <p class="question-contact">Вие сте:</p>   
+  <label class="option">
+    <input type="radio" name="role" value="Учител">
+    Учител
+  </label>
+  <br>
+   <label class="option">
+    <input type="radio" name="role" value="Ученик">
+    Ученик
+  </label>
+  <br>
+  <br>
+  <label class="email">
+    Имейл:
+    <br>
+    <br>
+    <input class="email1" type="email" name="email" required />
+  </label>
+  <br>
+<br>
+  <label class="textarea">
+    Вашето съобщение:
+    <br>
+    <br>
+    <textarea class="textarea1" name="message" rows="6" required></textarea>
+  </label>
+<br>
+<br>
+  <button type="submit" class="btnsub">Изпрати</button>
+</form>
+</section>
+
+<script>
+  const form = document.getElementById("contactForm");
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault(); // спира презареждането
+
+    try {
+      const res = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { "Accept": "application/json" }
+      });
+
+      if (res.ok) {
+        form.reset(); // ✅ изчиства всички полета + radio
+        alert("Изпратено успешно ✅");
+      } else {
+        alert("Грешка при изпращане. Опитай пак.");
+      }
+    } catch (err) {
+      alert("Няма връзка или има проблем. Опитай пак.");
+    }
+  });
+</script>
+
+</main>
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-left">
+      <div class="footer-logo">
+        <span class="#"><img src="pictures/logo.png" style="height: 50px; width: 45px;"></span>
+        <span class="logo-text">PhysiCore</span>
+      </div>
+      <p class="footer-desc">
+        Интерактивен помощник по физика за 8–10 клас.<br>
+      </p>
+    </div>
+
+    <div class="footer-links">
+      <h4>Навигация</h4>
+      <a href="/">Начало👩‍🔬</a>
+      <a href="/solve">Задачи📑</a>
+      <a href="/handbook.html">Помагало❗</a>
+      <a href="/test.html">Какво научих❓</a>
+      <a href="/igra.html">Време за игра🎯</a>
+      <a href="/contact.html">Контакти🔎</a>
+    </div>
+
+    <div class="footer-links">
+      <h4>Проект</h4>
+      <span>НОИТ 2026</span>
+      <span>9 клас · Софтуерни приложения</span>
+      <span>Автор: Лъчезар Йорданов</span>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    © 2026 PhysiCore · Всички права запазени
+  </div>
+</footer>
+</body>
+</html>

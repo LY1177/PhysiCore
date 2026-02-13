@@ -46,7 +46,37 @@
   .pill1{display:none}
   #lesson{font-weight:bold}
   #lesson option{font-weight:bold}
-  .secondary1{display:none}
+  .secondary1{display:none;}
+  .ban-btn{
+  position: relative;
+  padding:9px 16px;
+  background: #ffffff;
+  color: #000;
+  font-weight: 800;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+
+.ban-btn::before{
+  content: "";
+  position: absolute;
+  top: -40%;
+  left: -80%;
+  width: 200%;
+  height: 20%;
+  background: #e10600;
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.ban-btn:hover{
+  transform: translateY(-1px);
+}
+
+  
 </style>
 </head>
 <body>
@@ -66,7 +96,7 @@
   <button id="check">Провери</button>
   <button class="secondary" id="hint">Подсказка (-25)</button>
   <button class="secondary1" id="next">Следващ</button>
-  <button class="secondary" id="reset">Нова игра</button>
+  <button class="ban-btn" id="reset">Нова игра</button>
 </header>
 
 <div id="wrap">

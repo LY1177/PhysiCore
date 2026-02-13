@@ -37,52 +37,76 @@ function renderTasks(tasks){
     area.innerHTML = `<div class="empty">Няма задачи за тази тема (провери seed-а).</div>`;
     return;
   }
-  qs("#counter").textContent = `${tasks.length} задачи`;
+  // Показване на задачите една по една (paging), вместо всички наведнъж.
+  let idx = 0;
 
-  area.innerHTML = tasks.map((t, idx) => {
-    const opts = t.options.map((o, oi) =>
-      `<button class="opt" data-task="${t.id}" data-idx="${oi}">${String.fromCharCode(65+oi)}. ${o}</button>`
-    ).join("");
-    return `
+  const renderOne = () => {
+    const t = tasks[idx];
+    qs("#counter").textContent = `${idx + 1} / ${tasks.length}`;
+
+    const optsHtml = t.options
+      .map(
+        (o, oi) =>
+          `<button class="opt" data-task="${t.id}" data-idx="${oi}">${String.fromCharCode(65 + oi)}. ${o}</button>`
+      )
+      .join("");
+
+    area.innerHTML = `
+      <div class="task-nav row" style="justify-content:space-between; align-items:center; gap:10px;">
+        <button class="btn ghost" id="btnPrev" ${idx === 0 ? "disabled" : ""}>⬅ Предишна</button>
+        <div class="subtle" style="opacity:.85; font-size:13px;">Задача ${idx + 1} от ${tasks.length}</div>
+        <button class="btn ghost" id="btnNext" ${idx === tasks.length - 1 ? "disabled" : ""}>Следваща ➡</button>
+      </div>
+
       <div class="task-card" data-card="${t.id}">
-        <div class="q">${idx+1}) ${t.question}</div>
-        <div class="optgrid">${opts}</div>
+        <div class="q">${idx + 1}) ${t.question}</div>
+        <div class="optgrid">${optsHtml}</div>
         <div class="explain hidden" id="ex_${t.id}"></div>
       </div>
     `;
-  }).join("");
 
-  area.querySelectorAll(".opt").forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const taskId = Number(btn.dataset.task);
-      const chosenIndex = Number(btn.dataset.idx);
-
-      // disable all options for this task while submitting
-      const card = area.querySelector(`[data-card="${taskId}"]`);
-      const opts = card.querySelectorAll(".opt");
-      opts.forEach(o => (o.disabled = true));
-
-      try{
-        const res = await api("/api/submit","POST",{ taskId, chosenIndex });
-        // mark chosen
-        btn.classList.add(res.isCorrect ? "correct" : "wrong");
-
-        const ex = qs(`#ex_${taskId}`);
-        ex.classList.remove("hidden");
-        ex.innerHTML = `
-          <b>${res.isCorrect ? "Верен отговор ✅" : "Грешен отговор ❌"}</b>
-          • Точки: <b>${res.pointsEarned}</b><br/>
-          ${res.explanation}
-        `;
-        await refreshStats();
-      }catch(err){
-        const ex = qs(`#ex_${taskId}`);
-        ex.classList.remove("hidden");
-        ex.textContent = err.message;
-        opts.forEach(o => (o.disabled = false));
-      }
+    const btnPrev = qs("#btnPrev");
+    const btnNext = qs("#btnNext");
+    if (btnPrev) btnPrev.addEventListener("click", () => {
+      if (idx > 0) { idx -= 1; renderOne(); }
     });
-  });
+    if (btnNext) btnNext.addEventListener("click", () => {
+      if (idx < tasks.length - 1) { idx += 1; renderOne(); }
+    });
+
+    area.querySelectorAll(".opt").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const taskId = Number(btn.dataset.task);
+        const chosenIndex = Number(btn.dataset.idx);
+
+        // disable all options for this task while submitting
+        const card = area.querySelector(`[data-card="${taskId}"]`);
+        const opts = card.querySelectorAll(".opt");
+        opts.forEach(o => (o.disabled = true));
+
+        try{
+          const res = await api("/api/submit","POST",{ taskId, chosenIndex });
+          btn.classList.add(res.isCorrect ? "correct" : "wrong");
+
+          const ex = qs(`#ex_${taskId}`);
+          ex.classList.remove("hidden");
+          ex.innerHTML = `
+            <b>${res.isCorrect ? "Верен отговор ✅" : "Грешен отговор ❌"}</b>
+            • Точки: <b>${res.pointsEarned}</b><br/>
+            ${res.explanation}
+          `;
+          await refreshStats();
+        }catch(err){
+          const ex = qs(`#ex_${taskId}`);
+          ex.classList.remove("hidden");
+          ex.textContent = err.message;
+          opts.forEach(o => (o.disabled = false));
+        }
+      });
+    });
+  };
+
+  renderOne();
 }
 
 async function loadTasks(){
