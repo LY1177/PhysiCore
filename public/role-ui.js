@@ -23,7 +23,12 @@
     document.querySelectorAll(".teacher-only").forEach((el) => {
       el.style.display = user && user.role === "teacher" ? "inline-block" : "none";
     });
+
+    document.querySelectorAll(".admin-only").forEach((el) => {
+      el.style.display = user && user.role === "admin" ? "inline-block" : "none";
+    });
   } catch (e) {
     document.querySelectorAll(".teacher-only").forEach((el) => (el.style.display = "none"));
+    document.querySelectorAll(".admin-only").forEach((el) => (el.style.display = "none"));
   }
 })();

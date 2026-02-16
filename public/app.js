@@ -30,6 +30,7 @@ async function refreshMe(){
   const btnLogout = qs("#btnLogout");
 
   if (user) {
+    if (authCard) authCard.style.display = "none";
     qs("#userName").textContent = user.username;
     userBox.classList.remove("hidden");
     paneLogin.classList.add("hidden");
@@ -42,6 +43,7 @@ async function refreshMe(){
     qs("#miniCorrect").textContent = s.stats.correctCount;
     qs("#miniWrong").textContent = s.stats.wrongCount;
   } else {
+    if (authCard) authCard.style.display = "block";
     userBox.classList.add("hidden");
     paneLogin.classList.remove("hidden");
     if (btnLogout) btnLogout.style.display = "none";
@@ -65,6 +67,7 @@ function initTabs(){
         paneLogin.classList.remove("hidden");
         paneRegister.classList.add("hidden");
       } else {
+    if (authCard) authCard.style.display = "block";
         paneRegister.classList.remove("hidden");
         paneLogin.classList.add("hidden");
       }

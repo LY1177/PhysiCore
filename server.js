@@ -32,6 +32,13 @@ function requireTeacher(req, res, next) {
   next();
 }
 
+function requireAdmin(req, res, next) {
+  if (!req.session.user) return res.status(401).json({ error: "Not authenticated" });
+  if (req.session.user.role !== "admin") return res.status(403).json({ error: "Forbidden" });
+  next();
+}
+
+
 /* ---------------- AUTH ---------------- */
 
 app.post("/api/register", async (req, res) => {
@@ -287,7 +294,26 @@ app.get("/api/teacher/users", requireTeacher, (req, res) => {
   );
 });
 
+
+// Списък с потребители (без пароли) - достъпен за всички
+app.get("/api/users", requireAdmin, (req, res) => {
+  db.all(
+    "SELECT id, username, role, created_at FROM users ORDER BY id DESC LIMIT 200",
+    [],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: "DB error" });
+      res.json({ users: rows });
+    }
+  );
+});
+
 /* ---------------- PAGES ---------------- */
+
+app.get("/users", (req, res) => {
+  if (!req.session.user) return res.redirect("/");
+  if (req.session.user.role !== "admin") return res.redirect("/");
+  res.sendFile(path.join(__dirname, "public", "users.html"));
+});
 
 app.get("/handbook", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "handbook.html"));

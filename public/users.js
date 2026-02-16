@@ -25,28 +25,15 @@ function renderTable(el, headers, rows) {
   el.innerHTML = thead + tbody;
 }
 
-async function loadTeacher() {
-  const msg = document.querySelector("#teacherMsg");
+async function loadUsers() {
+  const msg = document.querySelector("#msg");
   try {
-    const [overview, lb] = await Promise.all([
-      api("/api/teacher/overview"),
-      api("/api/teacher/leaderboard"),
-    ]);
-
-    const topTbl = document.querySelector("#tblTopWrong");
+    const data = await api("/api/users");
     renderTable(
-      topTbl,
-      ["Тема", "Опити", "Грешни"],
-      (overview.topWrongTopics || []).map(r => [r.topic, r.attempts, r.wrongs])
+      document.querySelector("#tblUsers"),
+      ["ID", "Потребител", "Роля", "Създаден"],
+      (data.users || []).map(u => [u.id, u.username, u.role, u.created_at])
     );
-
-    const lbTbl = document.querySelector("#tblLeaderboard");
-    renderTable(
-      lbTbl,
-      ["Потребител", "Точки", "Верни", "Грешни"],
-      (lb.leaderboard || []).map(r => [r.username, r.points, r.correct, r.wrong])
-    );
-
     if (msg) msg.textContent = "✅ Заредено.";
   } catch (e) {
     if (msg) msg.textContent = `❌ Няма достъп или грешка: ${e.message}`;
@@ -58,22 +45,10 @@ async function initLogout() {
   if (!btn) return;
   btn.addEventListener("click", async (e) => {
     e.preventDefault();
-    try {
-      await api("/api/logout", "POST");
-    } catch (e2) {}
+    try { await api("/api/logout", "POST"); } catch (_) {}
     location.href = "/";
   });
 }
 
 initLogout();
-loadTeacher();
-
-// Logout button (teacher page)
-const btnLogout = document.querySelector('#btnLogout');
-if (btnLogout) {
-  btnLogout.addEventListener('click', async (e) => {
-    e.preventDefault();
-    try { await api('/api/logout', 'POST'); } catch (_) {}
-    location.href = '/';
-  });
-}
+loadUsers();

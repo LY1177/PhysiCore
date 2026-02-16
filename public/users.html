@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PhysiCore • Потребители</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="#"><img src="pictures/logo.png" style="height: 50px; width: 45px;"></div>
+      <div>
+        <div class="brand-title">PhysiCore</div>
+        <div class="brand-sub">Потребители</div>
+      </div>
+    </div>
+    <nav class="nav">
+      <a class="navlink admin-only" href="/users" style="display:none;">Потребители👥</a>
+      <a class="navlink" href="/teacher">Учител👩‍🏫</a>
+      <a class="navlink" href="/" >Начало👩‍🔬</a>
+      <a class="navlink" href="#" id="btnLogout">Изход</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <h1 class="bubble-title">👥 Потребители</h1>
+    <p class="note">Показват се всички регистрирани потребители (без пароли). Достъпно е за всички.</p>
+    <table class="table" id="tblUsers"></table>
+    <div id="msg" style="margin-top:16px; opacity:.75;"></div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-bottom">© 2026 PhysiCore</div>
+  </footer>
+
+  <script src="role-ui.js"></script>
+  <script src="users.js"></script>
+</body>
+</html>
