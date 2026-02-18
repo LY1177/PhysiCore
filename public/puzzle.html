@@ -40,6 +40,18 @@
   #size option{
     font-weight: bold;
   }
+  html,body{overflow-x:hidden;max-width:100%}
+
+@media (max-width: 900px){
+  .tabs{flex-wrap:wrap}
+  .tab{max-width:100%}
+}
+
+@media (max-width: 600px){
+  .tabs{flex-wrap:wrap}
+  .tab{flex:1 1 auto;min-width:0}
+}
+
 </style>
 </head>
 <body>
@@ -89,7 +101,7 @@
   </div>
 </div>
 
-<!-- WIN MODAL -->
+
 <div class="modal" id="modal">
   <div class="box">
     <div class="row">
@@ -106,7 +118,7 @@
 (() => {
   const el = id => document.getElementById(id);
 
-  // Canvas
+  
   const canvas = el("c");
   const ctx = canvas.getContext("2d");
   const full = el("full");
@@ -127,8 +139,7 @@
   const timeEl=el("time"), movesEl=el("moves"), progEl=el("prog"), msgEl=el("msg");
   const sizeEl=el("size");
   const modal=el("modal");
-
-  // Source image 
+ 
   const src = document.createElement("canvas");
   const sctx = src.getContext("2d");
   let srcReady = false;
@@ -143,14 +154,14 @@
     sctx.fillStyle=g;
     sctx.fillRect(0,0,S,S);
 
-    // stars
+    
     sctx.fillStyle="rgba(255,255,255,.10)";
     for(let i=0;i<170;i++){
       const x=(i*73)%S, y=(i*131)%S;
       sctx.fillRect(x,y,2,2);
     }
 
-    // Title
+   
     sctx.fillStyle="rgba(255,255,255,.92)";
     sctx.font="900 52px system-ui";
     sctx.fillText("PHYSICS", 60, 95);
@@ -159,7 +170,7 @@
     sctx.font="700 22px system-ui";
     sctx.fillText("формули • електрическа верига • графика", 60, 135);
 
-    // Formulas
+    
     sctx.fillStyle="rgba(168,85,247,.95)";
     sctx.font="900 34px system-ui";
     sctx.fillText("F = m·a", 70, 230);
@@ -167,7 +178,7 @@
     sctx.fillText("Q = c·m·ΔT", 70, 350);
     sctx.fillText("1/f = 1/a + 1/b", 70, 410);
 
-    // Circuit box
+    
     sctx.strokeStyle="rgba(245,158,11,.9)";
     sctx.lineWidth=8;
     sctx.lineCap="round";
@@ -177,7 +188,7 @@
     sctx.closePath();
     sctx.stroke();
 
-    // battery
+    
     sctx.strokeStyle="rgba(255,255,255,.85)";
     sctx.lineWidth=10;
     sctx.beginPath(); sctx.moveTo(520, 300); sctx.lineTo(520, 420); sctx.stroke();
@@ -187,7 +198,7 @@
     sctx.font="800 18px system-ui";
     sctx.fillText("батерия", 585, 370);
 
-    // Resistor zigzag
+   
     sctx.strokeStyle="rgba(34,197,94,.9)";
     sctx.lineWidth=8;
     sctx.beginPath();
@@ -203,7 +214,7 @@
     sctx.font="800 18px system-ui";
     sctx.fillText("резистор R", 635, 170);
 
-    // Ampermeter
+  
     sctx.strokeStyle="rgba(59,130,246,.95)";
     sctx.lineWidth=8;
     sctx.beginPath(); sctx.arc(820, 365, 42, 0, Math.PI*2); sctx.stroke();
@@ -211,7 +222,7 @@
     sctx.font="900 34px system-ui";
     sctx.fillText("A", 807, 377);
 
-    // Graph area
+    
     sctx.fillStyle="rgba(255,255,255,.08)";
     sctx.fillRect(60, 520, 420, 310);
     sctx.strokeStyle="rgba(255,255,255,.18)";
@@ -233,7 +244,7 @@
     sctx.font="800 18px system-ui";
     sctx.fillText("s(t) при a>0", 70, 548);
 
-    // Footer
+    
     sctx.fillStyle="rgba(255,255,255,.55)";
     sctx.font="700 18px system-ui";
     sctx.fillText("", 60, 870);
@@ -253,7 +264,7 @@
     srcReady=true;
   }
 
-  // ---- Puzzle State ----
+  
   let N = Number(sizeEl.value);
   let pieces = [];  
   let moves = 0;
@@ -262,7 +273,7 @@
   let t0 = 0;
   let elapsed = 0;
 
-  // dragging
+  
   let dragging = null; 
   let dragOffX = 0, dragOffY = 0;
 
@@ -280,7 +291,7 @@
   requestAnimationFrame(tick);
 
   function boardRect(){
-    // square board on left canvas
+   
     const w=W(), h=H();
     const size = Math.min(w, h) - 40;
     const x=(w-size)/2;
@@ -293,7 +304,7 @@
     const br=boardRect();
     const cell=br.cell;
 
-    // correct slots
+    
     for(let r=0;r<N;r++){
       for(let c=0;c<N;c++){
         const id=r*N+c;
@@ -321,7 +332,7 @@
       }
     }
 
-    // shuffle drawing order
+    
     for(let i=pieces.length-1;i>0;i--){
       const j=Math.floor(Math.random()*(i+1));
       [pieces[i],pieces[j]]=[pieces[j],pieces[i]];
@@ -376,7 +387,7 @@
   }
 
   function pieceAt(mx,my){
-    // pick topmost piece under mouse (iterate reverse draw order)
+    
     for(let i=pieces.length-1;i>=0;i--){
       const p=pieces[i];
       if(p.locked) continue;
@@ -400,20 +411,20 @@
     ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
     ctx.clearRect(0,0,w,h);
 
-    // background
+    
     ctx.fillStyle="rgba(255,255,255,.03)";
     ctx.fillRect(0,0,w,h);
 
     const br=boardRect();
 
-    // board outline
+    
     ctx.fillStyle="rgba(255,255,255,.04)";
     ctx.fillRect(br.x, br.y, br.size, br.size);
     ctx.strokeStyle="rgba(255,255,255,.16)";
     ctx.lineWidth=3;
     ctx.strokeRect(br.x, br.y, br.size, br.size);
 
-    // grid
+    
     ctx.strokeStyle="rgba(255,255,255,.10)";
     ctx.lineWidth=1;
     for(let i=1;i<N;i++){
@@ -427,23 +438,23 @@
       ctx.stroke();
     }
 
-    // ghost preview
+    
     if(srcReady){
       ctx.globalAlpha=0.10;
       ctx.drawImage(src, br.x, br.y, br.size, br.size);
       ctx.globalAlpha=1;
     }
 
-    // pieces
+    
     for(const p of pieces){
-      // image slice
+      
       if(srcReady){
         ctx.drawImage(src, p.sx, p.sy, p.sw, p.sh, p.x, p.y, p.w, p.h);
       } else {
         ctx.fillStyle="rgba(255,255,255,.10)";
         ctx.fillRect(p.x,p.y,p.w,p.h);
       }
-      // border
+      
       ctx.strokeStyle = p.locked ? "rgba(34,197,94,.55)" : "rgba(255,255,255,.18)";
       ctx.lineWidth=2;
       ctx.strokeRect(p.x, p.y, p.w, p.h);
@@ -472,7 +483,7 @@
 
   
 
-  // Mouse => canvas coords
+  
   function mousePos(evt){
     const rect = canvas.getBoundingClientRect();
     const mx = (evt.clientX - rect.left) * (W()/rect.width);
@@ -510,7 +521,7 @@
     snapIfClose(p);
   });
 
-  // Touch support (optional but nice)
+  
   canvas.addEventListener("touchstart",(e)=>{
     if(!srcReady) return;
     const t=e.touches[0];
@@ -543,7 +554,6 @@
     e.preventDefault();
   }, {passive:false});
 
-  // Controls
   el("shuffle").onclick = ()=> resetGame();
   el("builtin").onclick = ()=> { drawBuiltInPhysics(); resetGame(); };
   sizeEl.onchange = ()=> resetGame();
@@ -562,7 +572,7 @@
   el("close").onclick = ()=> modal.classList.remove("open");
   modal.addEventListener("click",(e)=>{ if(e.target===modal) modal.classList.remove("open"); });
 
-  // init
+  
   drawBuiltInPhysics();
   resetGame();
   requestAnimationFrame(draw);

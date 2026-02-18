@@ -37,7 +37,7 @@ function renderTasks(tasks){
     area.innerHTML = `<div class="empty">Няма задачи за тази тема (провери seed-а).</div>`;
     return;
   }
-  // Показване на задачите една по една (paging), вместо всички наведнъж.
+
   let idx = 0;
 
   const renderOne = () => {

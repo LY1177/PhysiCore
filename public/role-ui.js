@@ -6,7 +6,7 @@
     location.href = '/';
   }
 
-  // Hook logout in pages that don't have app.js
+  
   const btnLogout = document.querySelector('#btnLogout');
   if (btnLogout) {
     btnLogout.addEventListener('click', (e) => {

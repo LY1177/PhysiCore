@@ -89,7 +89,7 @@
   const form = document.getElementById("contactForm");
 
   form.addEventListener("submit", async (e) => {
-    e.preventDefault(); // спира презареждането
+    e.preventDefault(); 
 
     try {
       const res = await fetch(form.action, {
@@ -99,7 +99,7 @@
       });
 
       if (res.ok) {
-        form.reset(); // ✅ изчиства всички полета + radio
+        form.reset();
         alert("Изпратено успешно ✅");
       } else {
         alert("Грешка при изпращане. Опитай пак.");

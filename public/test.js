@@ -141,7 +141,7 @@ function downloadPdf() {
 async function init() {
   await ensureAuth();
 
-  // По подразбиране: 8 клас, случайни въпроси
+
   qs("#btnGenTest").addEventListener("click", generateTest);
   qs("#btnPdf").addEventListener("click", downloadPdf);
 }

@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Конвертор на мерни единици (8–9 клас)</title>
+<style>
+:root{
+--bg0:#070a12;--bg1:#0b1020;--card:rgba(255,255,255,.06);
+--stroke:rgba(255,255,255,.10);--text:#eaf1ff;
+--muted:rgba(234,241,255,.6);--accent:#997ae1;
+--shadow:0 20px 60px rgba(80, 38, 164, 0.6);--rad:18px}
+*{box-sizing:border-box}
+body{
+margin:0;min-height:100vh;color:var(--text);
+font-family:system-ui,Segoe UI,Roboto,Arial;
+background:#0b1020;}
+body:before{
+content:"";position:fixed;inset:0;
+background:
+linear-gradient(to right,rgba(255,255,255,.05) 1px,transparent 1px),
+linear-gradient(to bottom,rgba(255,255,255,.05) 1px,transparent 1px);
+background-size:44px 44px;opacity:.12;pointer-events:none;
+mask-image:radial-gradient(650px 450px at 50% 30%,#000 55%,transparent 78%)}
+
+.wrap{max-width:980px;margin:auto;padding:50px 16px;display:flex;flex-direction:column;gap:20px;}
+h1{text-align:center;font-size:34px;margin:0}
+.sub{text-align:center;color:var(--muted);font-size:14px}
+
+.card{
+background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.04));
+border:1px solid var(--stroke);
+border-radius:var(--rad);
+box-shadow:var(--shadow);
+backdrop-filter:blur(12px)}
+
+.tabs{display:flex;gap:10px;padding:18px;flex-wrap:wrap;}
+.tab{
+padding:10px 14px;border-radius:12px;
+border:1px solid rgba(255,255,255,.12);
+background:rgba(255,255,255,.04);
+color:var(--muted);cursor:pointer;font-weight:800;user-select:none}
+.tab.active{
+background:#997ae1;
+border-color:rgba(30,144,255,.5);color:#ffffff}
+
+.formula{
+margin:0 18px 16px;
+padding:18px;border-radius:14px;
+background:rgba(255,255,255,.03);
+border:1px solid rgba(255,255,255,.08);
+text-align:center;font-size:18px;font-weight:900;color:var(--accent)}
+
+.content{padding:0 18px 18px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:720px){.grid{grid-template-columns:1fr}}
+
+.field{display:flex;flex-direction:column;gap:6px;}
+label{font-size:12px;color:var(--muted);}
+
+.inputWrap{position:relative}
+input, select{
+width:100%;padding:14px 14px;
+border-radius:14px;
+border:1px solid rgba(255,255,255,.12);
+background: rgb(44, 49, 87);
+color:#fff;font-size:14px;outline:none}
+select{appearance:none}
+.smallNote{font-size:12px;color:var(--muted);line-height:1.35}
+
+.actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+button{
+flex:1;min-width:160px;
+padding:14px;border-radius:14px;
+border:1px solid rgba(255,255,255,.14);
+background:rgba(255,255,255,.05);
+color:#fff;font-weight:900;cursor:pointer}
+.primary{
+background:#997ae1;
+border-color:rgba(30,144,255,.6)}
+
+.result{
+margin-top:14px;padding:14px;border-radius:14px;
+background:rgb(44, 49, 87);
+border: 1px solid rgba(255,255,255,.12);
+display:flex;justify-content:space-between;align-items:center;gap:12px}
+.result b{color:var(--muted);font-size:12px}
+.value{font-size:20px;font-weight:900;word-break:break-word;text-align:right}
+.err{color:#ff6b81}
+.mini{
+display:inline-flex;align-items:center;gap:8px;
+padding:8px 10px;border-radius:12px;
+border:1px solid rgba(255,255,255,.12);
+background:rgba(255,255,255,.04);
+color:var(--muted);font-weight:800;cursor:pointer;user-select:none
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+  <h1>📏 Конвертор</h1>
+  <div class="sub">Избери величина, въведи стойност и конвертирай между мерни единици</div>
+
+  <div class="card">
+    <div class="tabs" id="tabs"></div>
+    <div class="formula" id="titleLine">—</div>
+
+    <div class="content">
+      <div class="grid">
+        <div class="field">
+          <label>Стойност</label>
+          <div class="inputWrap">
+            <input id="valIn" inputmode="decimal" placeholder="Напр. 12.5" />
+          </div>
+          <div class="smallNote" id="hint">—</div>
+        </div>
+
+        <div class="field">
+          <label>От единица</label>
+          <select id="fromUnit"></select>
+        </div>
+
+        <div class="field">
+          <label>Към единица</label>
+          <select id="toUnit"></select>
+        </div>
+
+        <div class="field">
+          <label>Бързи действия</label>
+          <div style="display:flex;gap:10px;flex-wrap:wrap">
+            <div class="mini" onclick="swapUnits()">⇄ Размени</div>
+            <div class="mini" onclick="setExample()">✦ Пример</div>
+            <div class="mini" onclick="resetAll()">⟲ Нулирай</div>
+          </div>
+          <div class="smallNote">Съвет: натисни Enter за конвертиране.</div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" onclick="convert()">Конвертирай →</button>
+        <button onclick="copyResult()">Копирай резултат</button>
+      </div>
+
+      <div class="result">
+        <div>
+          <b>Резултат</b><br />
+          <span id="meta" style="font-size:12px;color:var(--muted)">—</span>
+        </div>
+        <div class="value" id="out">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Линеен конвертор: base = x * factor (спрямо базова SI единица)
+// Температура е отделно (нелинейна за °F)
+const Q = [
+  {
+    name: "Дължина", symbol: "l", base: "m",
+    hint: "Полезно за задачи с път, размери, оптика и др.",
+    example: {v: 2.5, from:"km", to:"m"},
+    units: {
+      "mm": 1e-3, "cm": 1e-2, "dm": 1e-1,
+      "m": 1, "km": 1e3
+    }
+  },
+  {
+    name: "Площ", symbol: "S", base: "m²",
+    hint: "Площ на фигури, налягане (F/S), топлообмен и др.",
+    example: {v: 3500, from:"cm²", to:"m²"},
+    units: {
+      "mm²": 1e-6, "cm²": 1e-4, "dm²": 1e-2,
+      "m²": 1, "a (ар)": 100, "ha": 1e4, "km²": 1e6
+    }
+  },
+  {
+    name: "Обем", symbol: "V", base: "m³",
+    hint: "Обем/вместимост, плътност (m/V), хидростатика.",
+    example: {v: 2, from:"L", to:"m³"},
+    units: {
+      "mm³": 1e-9, "cm³": 1e-6, "dm³": 1e-3,
+      "m³": 1,
+      "L": 1e-3,
+      "mL": 1e-6
+    }
+  },
+  {
+    name: "Време", symbol: "t", base: "s",
+    hint: "Кинематика, период/честота, електричество.",
+    example: {v: 3, from:"h", to:"s"},
+    units: {
+      "ms": 1e-3, "s": 1, "min": 60, "h": 3600
+    }
+  },
+  {
+    name: "Маса", symbol: "m", base: "kg",
+    hint: "Сила, енергия, плътност, налягане и др.",
+    example: {v: 750, from:"g", to:"kg"},
+    units: {
+      "mg": 1e-6, "g": 1e-3, "kg": 1, "t": 1e3
+    }
+  },
+  {
+    name: "Скорост", symbol: "v", base: "m/s",
+    hint: "Често: km/h ↔ m/s (делиш/умножаваш по 3.6).",
+    example: {v: 72, from:"km/h", to:"m/s"},
+    units: {
+      "m/s": 1,
+      "km/h": 1/3.6
+    }
+  },
+  {
+    name: "Ускорение", symbol: "a", base: "m/s²",
+    hint: "Ускорение при движение, свободно падане (g≈9.81 m/s²).",
+    example: {v: 9.81, from:"m/s²", to:"cm/s²"},
+    units: {
+      "m/s²": 1,
+      "cm/s²": 1e-2
+    }
+  },
+  {
+    name: "Сила", symbol: "F", base: "N",
+    hint: "F = m·a. 1 N = 1 kg·m/s².",
+    example: {v: 2.5, from:"kN", to:"N"},
+    units: {
+      "mN": 1e-3, "N": 1, "kN": 1e3
+    }
+  },
+  {
+    name: "Налягане", symbol: "p", base: "Pa",
+    hint: "p = F/S. 1 bar = 100 000 Pa (точно).",
+    example: {v: 1, from:"atm", to:"Pa"},
+    units: {
+      "Pa": 1, "kPa": 1e3, "MPa": 1e6,
+      "bar": 1e5,
+      "atm": 101325,        // стандартна атмосфера
+      "mmHg": 133.322368    // приблизително (тор)
+    }
+  },
+  {
+    name: "Работа / Енергия", symbol: "E, A", base: "J",
+    hint: "J, kJ, MJ; електроенергия: Wh, kWh (1 Wh = 3600 J).",
+    example: {v: 1, from:"kWh", to:"J"},
+    units: {
+      "J": 1, "kJ": 1e3, "MJ": 1e6,
+      "Wh": 3600,
+      "kWh": 3.6e6
+    }
+  },
+  {
+    name: "Мощност", symbol: "P", base: "W",
+    hint: "P = A/t. Електрическа: P = U·I.",
+    example: {v: 2.2, from:"kW", to:"W"},
+    units: {
+      "mW": 1e-3, "W": 1, "kW": 1e3, "MW": 1e6
+    }
+  },
+  {
+    name: "Плътност", symbol: "ρ", base: "kg/m³",
+    hint: "ρ = m/V. Често: 1 g/cm³ = 1000 kg/m³.",
+    example: {v: 1.2, from:"g/cm³", to:"kg/m³"},
+    units: {
+      "kg/m³": 1,
+      "g/cm³": 1000
+    }
+  },
+  {
+    name: "Температура", symbol: "T", base: "K",
+    hint: "Нелинеен конвертор: °C ↔ K ↔ °F.",
+    example: {v: 25, from:"°C", to:"K"},
+    temperature: true,
+    units: { "°C": 1, "K": 1, "°F": 1 }
+  },
+  {
+    name: "Честота", symbol: "f", base: "Hz",
+    hint: "f = 1/T. Звук, вълни, електричество.",
+    example: {v: 2.5, from:"kHz", to:"Hz"},
+    units: {
+      "Hz": 1, "kHz": 1e3, "MHz": 1e6
+    }
+  },
+  {
+    name: "Електричен заряд", symbol: "q", base: "C",
+    hint: "q = I·t (когато I е постоянен).",
+    example: {v: 450, from:"mC", to:"C"},
+    units: {
+      "µC": 1e-6, "mC": 1e-3, "C": 1
+    }
+  },
+  {
+    name: "Ток", symbol: "I", base: "A",
+    hint: "Закон на Ом и електрически вериги.",
+    example: {v: 350, from:"mA", to:"A"},
+    units: {
+      "µA": 1e-6, "mA": 1e-3, "A": 1
+    }
+  },
+  {
+    name: "Напрежение", symbol: "U", base: "V",
+    hint: "U = I·R. Често: mV, V, kV.",
+    example: {v: 3.3, from:"V", to:"mV"},
+    units: {
+      "mV": 1e-3, "V": 1, "kV": 1e3
+    }
+  },
+  {
+    name: "Съпротивление", symbol: "R", base: "Ω",
+    hint: "Ω, kΩ, MΩ (електричество 8–9 клас).",
+    example: {v: 4.7, from:"kΩ", to:"Ω"},
+    units: {
+      "Ω": 1, "kΩ": 1e3, "MΩ": 1e6
+    }
+  }
+];
+
+let cur = Q[0];
+
+const tabs = document.getElementById("tabs");
+const titleLine = document.getElementById("titleLine");
+const hint = document.getElementById("hint");
+const valIn = document.getElementById("valIn");
+const fromUnit = document.getElementById("fromUnit");
+const toUnit = document.getElementById("toUnit");
+const out = document.getElementById("out");
+const meta = document.getElementById("meta");
+
+function fmtNumber(x){
+  if(!isFinite(x)) return "—";
+  const ax = Math.abs(x);
+  if(ax === 0) return "0";
+  if(ax >= 1e6 || ax < 1e-4) return x.toExponential(6);
+  if(ax >= 1000) return x.toFixed(3);
+  return x.toFixed(6).replace(/\.?0+$/,'');
+}
+
+function renderTabs(){
+  tabs.innerHTML="";
+  Q.forEach(q=>{
+    const b=document.createElement("div");
+    b.className="tab"+(q===cur?" active":"");
+    b.textContent=q.name;
+    b.onclick=()=>{cur=q; renderPanel()};
+    tabs.appendChild(b);
+  });
+}
+
+function renderPanel(){
+  renderTabs();
+  titleLine.textContent = `Величина: ${cur.name} (${cur.symbol}) • базова: ${cur.base}`;
+  hint.textContent = cur.hint;
+
+  
+  const keys = Object.keys(cur.units);
+  fromUnit.innerHTML = keys.map(u=>`<option value="${u}">${u}</option>`).join("");
+  toUnit.innerHTML = keys.map(u=>`<option value="${u}">${u}</option>`).join("");
+
+  
+  const baseIdx = keys.indexOf(cur.base);
+  if(baseIdx >= 0){
+    fromUnit.selectedIndex = baseIdx;
+    toUnit.selectedIndex = baseIdx;
+  } else {
+    fromUnit.selectedIndex = 0;
+    toUnit.selectedIndex = Math.min(1, keys.length-1);
+  }
+
+  valIn.value = "";
+  out.textContent = "—";
+  meta.textContent = "—";
+}
+
+function convertTemperature(value, from, to){
+  
+  let K;
+  if(from==="K") K = value;
+  else if(from==="°C") K = value + 273.15;
+  else if(from==="°F") K = (value - 32) * 5/9 + 273.15;
+  else return NaN;
+
+  
+  if(to==="K") return K;
+  if(to==="°C") return K - 273.15;
+  if(to==="°F") return (K - 273.15) * 9/5 + 32;
+  return NaN;
+}
+
+function convert(){
+  const raw = (valIn.value || "").trim().replace(",", ".");
+  const value = parseFloat(raw);
+  const fu = fromUnit.value;
+  const tu = toUnit.value;
+
+  if(!isFinite(value)){
+    out.innerHTML = '<span class="err">Грешка</span>';
+    meta.textContent = "Въведи валидно число.";
+    return;
+  }
+
+  let result;
+  if(cur.temperature){
+    result = convertTemperature(value, fu, tu);
+  } else {
+    const f = cur.units[fu];
+    const t = cur.units[tu];
+    result = (value * f) / t;
+  }
+
+  if(!isFinite(result)){
+    out.innerHTML = '<span class="err">Грешка</span>';
+    meta.textContent = "Невалидна конверсия.";
+    return;
+  }
+
+  out.textContent = `${fmtNumber(result)} ${tu}`;
+  meta.textContent = `${value} ${fu} → ${tu}`;
+}
+
+function swapUnits(){
+  const a = fromUnit.value;
+  fromUnit.value = toUnit.value;
+  toUnit.value = a;
+  if(valIn.value.trim()!=="") convert();
+}
+
+function resetAll(){
+  valIn.value = "";
+  out.textContent = "—";
+  meta.textContent = "—";
+}
+
+function setExample(){
+  const ex = cur.example;
+  valIn.value = String(ex.v);
+  fromUnit.value = ex.from;
+  toUnit.value = ex.to;
+  convert();
+}
+
+async function copyResult(){
+  const text = out.textContent || "";
+  if(text==="—" || text.includes("Грешка")) return;
+  try{
+    await navigator.clipboard.writeText(text);
+    meta.textContent = "Копирано в клипборда ✅";
+  }catch(e){
+    meta.textContent = "Не успях да копирам (браузърът може да блокира).";
+  }
+}
+
+valIn.addEventListener("keydown",(e)=>{
+  if(e.key==="Enter") convert();
+});
+
+
+renderPanel();
+</script>
+</body>
+</html>

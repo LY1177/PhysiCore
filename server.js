@@ -159,7 +159,7 @@ app.get("/api/tasks", requireAuth, (req, res) => {
   );
 });
 
-// Случаен тест: задачи от всички теми за даден клас
+
 app.get("/api/random-test", requireAuth, (req, res) => {
   const classLevel = Number(req.query.class);
   const count = Math.max(1, Math.min(50, Number(req.query.count || 10)));
@@ -236,14 +236,12 @@ app.get("/api/stats", requireAuth, (req, res) => {
 
 /* ---------------- TEACHER MODE ---------------- */
 
-// Учителска страница (само ако role=teacher)
 app.get("/teacher", (req, res) => {
   if (!req.session.user) return res.redirect("/");
   if (req.session.user.role !== "teacher") return res.redirect("/");
   return res.sendFile(path.join(__dirname, "public", "teacher.html"));
 });
 
-// Обобщение: най-бъркани теми
 app.get("/api/teacher/overview", requireTeacher, (req, res) => {
   const sql = `
     SELECT t.topic,
@@ -262,7 +260,7 @@ app.get("/api/teacher/overview", requireTeacher, (req, res) => {
   });
 });
 
-// Класация по точки
+
 app.get("/api/teacher/leaderboard", requireTeacher, (req, res) => {
   const sql = `
     SELECT u.username,
@@ -282,7 +280,7 @@ app.get("/api/teacher/leaderboard", requireTeacher, (req, res) => {
   });
 });
 
-// Списък с потребители (без пароли)
+
 app.get("/api/teacher/users", requireTeacher, (req, res) => {
   db.all(
     "SELECT id, username, email, role, created_at FROM users ORDER BY id DESC LIMIT 200",
@@ -295,7 +293,7 @@ app.get("/api/teacher/users", requireTeacher, (req, res) => {
 });
 
 
-// Списък с потребители (без пароли) - достъпен за всички
+
 app.get("/api/users", requireAdmin, (req, res) => {
   db.all(
     "SELECT id, username, role, created_at FROM users ORDER BY id DESC LIMIT 200",

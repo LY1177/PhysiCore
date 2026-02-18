@@ -207,7 +207,7 @@
     render();
   }
 
-  // selection
+  
   let dragging=false, start=null, path=[];
   const clearSel=()=>document.querySelectorAll(".cell.sel").forEach(x=>x.classList.remove("sel"));
 
@@ -282,7 +282,7 @@
     path=[]; start=null;
   });
 
-  // hint
+  
   function hint(){
     if(score < 30){ msg.textContent="Нямаш 30 точки за подсказка."; return; }
     const next = targetWords.find(w=>!found.has(w));
@@ -312,7 +312,7 @@
     setTimeout(()=>p.forEach(q=>cellEls[q.r][q.c].classList.remove("sel")), 900);
   }
 
-  // timer
+  
   function tick(){
     if(running){
       elapsed=(performance.now()-t0)/1000 + base;
@@ -321,7 +321,7 @@
     requestAnimationFrame(tick);
   }
 
-  // save/load
+  
   function save(){
     localStorage.setItem(STORE, JSON.stringify({
       SIZE, grid, targetWords, found:[...found], score, elapsed

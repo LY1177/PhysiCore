@@ -68,7 +68,7 @@ async function initLogout() {
 initLogout();
 loadTeacher();
 
-// Logout button (teacher page)
+
 const btnLogout = document.querySelector('#btnLogout');
 if (btnLogout) {
   btnLogout.addEventListener('click', async (e) => {
