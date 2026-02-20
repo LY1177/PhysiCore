@@ -132,3 +132,39 @@ async function initAuth(){
 initTabs();
 initAuth();
 refreshMe().catch(()=>{});
+
+
+// ===== HAMBURGER NAV (mobile) =====
+(function() {
+  const btn = document.querySelector(".topbar .hamburger");
+  const nav = document.querySelector(".topbar .nav");
+  if (!btn || !nav) return;
+
+  const setState = (open) => {
+    nav.classList.toggle("open", open);
+    btn.classList.toggle("is-open", open);
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+  };
+
+  btn.addEventListener("click", () => {
+    const open = !nav.classList.contains("open");
+    setState(open);
+  });
+
+  // close when clicking a link
+  nav.querySelectorAll("a").forEach(a => {
+    a.addEventListener("click", () => setState(false));
+  });
+
+  // close when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!nav.classList.contains("open")) return;
+    if (btn.contains(e.target) || nav.contains(e.target)) return;
+    setState(false);
+  });
+
+  // close on resize up to desktop
+  window.addEventListener("resize", () => {
+    if (window.innerWidth > 768) setState(false);
+  });
+})();

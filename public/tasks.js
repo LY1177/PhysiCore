@@ -10,6 +10,13 @@ async function api(path, method = "GET", body) {
 }
 function qs(sel){ return document.querySelector(sel); }
 
+function typesetMath(rootEl){
+  // Ако MathJax е наличен – пререндерира формулите, които са в \( ... \)
+  if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
+    MathJax.typesetPromise(rootEl ? [rootEl] : undefined).catch(() => {});
+  }
+}
+
 async function ensureAuth(){
   const me = await api("/api/me");
   if (!me.user) location.href = "/";
@@ -65,6 +72,9 @@ function renderTasks(tasks){
       </div>
     `;
 
+    // Рендерирай формулите в текущата задача
+    typesetMath(area);
+
     const btnPrev = qs("#btnPrev");
     const btnNext = qs("#btnNext");
     if (btnPrev) btnPrev.addEventListener("click", () => {
@@ -95,6 +105,7 @@ function renderTasks(tasks){
             • Точки: <b>${res.pointsEarned}</b><br/>
             ${res.explanation}
           `;
+          typesetMath(ex);
           await refreshStats();
         }catch(err){
           const ex = qs(`#ex_${taskId}`);

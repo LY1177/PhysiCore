@@ -13,6 +13,12 @@ function qs(sel) {
   return document.querySelector(sel);
 }
 
+function typesetMath(rootEl){
+  if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
+    MathJax.typesetPromise(rootEl ? [rootEl] : undefined).catch(() => {});
+  }
+}
+
 async function ensureAuth() {
   const me = await api("/api/me");
   if (!me.user) location.href = "/";
@@ -42,6 +48,9 @@ function renderTest(tasks) {
       `;
     })
     .join("");
+
+  // Рендер на MathJax формули в теста
+  typesetMath(area);
 }
 
 function buildPrintHtml({ classLevel, tasks }) {
@@ -70,6 +79,13 @@ function buildPrintHtml({ classLevel, tasks }) {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Тест по физика • ${classLevel} клас</title>
+    <script>
+      window.MathJax = {
+        tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+        options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+      };
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
       *{box-sizing:border-box;font-family: ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial;}
       body{margin:24px;color:#111;}
@@ -89,7 +105,15 @@ function buildPrintHtml({ classLevel, tasks }) {
     <p class="sub">Дата: ${dateStr} • Име: _____________________________  Клас: _______</p>
     ${qHtml}
     <div class="footer">Генериран от PhysiCore</div>
-    <script>window.onload = () => window.print();</script>
+    <script>
+      window.onload = () => {
+        if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
+          MathJax.typesetPromise().then(() => window.print()).catch(() => window.print());
+        } else {
+          window.print();
+        }
+      };
+    </script>
   </body>
   </html>`;
 }

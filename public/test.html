@@ -5,6 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PhysiCore • Какво научих</title>
   <link rel="stylesheet" href="style.css">
+
+  <!-- MathJax (TeX) за коректно изобразяване на формули (степени, дроби, индекси) -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\\(', '\\)']],
+        displayMath: [['\\[', '\\]']]
+      },
+      options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+    };
+  </script>
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
 
@@ -19,6 +31,12 @@
       <div class="brand-sub">Моето развитие</div>
     </div>
   </div>
+
+  
+    <button class="hamburger" aria-label="Отвори меню" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+
 
   <nav class="nav">
       <a class="navlink admin-only" href="/users" style="display:none;">Потребители👥</a>
@@ -112,5 +130,6 @@
 </footer>
 <script src="role-ui.js"></script>
 <script src="test.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
