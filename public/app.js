@@ -37,7 +37,7 @@ async function refreshMe(){
     paneRegister.classList.add("hidden");
     if (btnLogout) btnLogout.style.display = "inline-block";
 
-    // статистика
+
     const s = await api("/api/stats");
     qs("#miniPoints").textContent = s.stats.totalPoints;
     qs("#miniCorrect").textContent = s.stats.correctCount;
@@ -134,7 +134,7 @@ initAuth();
 refreshMe().catch(()=>{});
 
 
-// ===== HAMBURGER NAV (mobile) =====
+
 (function() {
   const btn = document.querySelector(".topbar .hamburger");
   const nav = document.querySelector(".topbar .nav");
@@ -151,19 +151,19 @@ refreshMe().catch(()=>{});
     setState(open);
   });
 
-  // close when clicking a link
+
   nav.querySelectorAll("a").forEach(a => {
     a.addEventListener("click", () => setState(false));
   });
 
-  // close when clicking outside
+
   document.addEventListener("click", (e) => {
     if (!nav.classList.contains("open")) return;
     if (btn.contains(e.target) || nav.contains(e.target)) return;
     setState(false);
   });
 
-  // close on resize up to desktop
+  
   window.addEventListener("resize", () => {
     if (window.innerWidth > 768) setState(false);
   });

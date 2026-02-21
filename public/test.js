@@ -49,7 +49,7 @@ function renderTest(tasks) {
     })
     .join("");
 
-  // Рендер на MathJax формули в теста
+
   typesetMath(area);
 }
 

@@ -12,7 +12,7 @@ function openDb() {
 }
 
 function ensureUserRoleColumn(db) {
-  // Ако users таблицата вече съществува без role, добавяме колоната.
+ 
   db.all("PRAGMA table_info(users);", (err, rows) => {
     if (err || !rows) return;
     const hasRole = rows.some((r) => r.name === "role");

@@ -688,7 +688,7 @@ label{font-size:12px;color:var(--muted2)}
 
 }
 
-/* ===== GLOBAL SOFT PURPLE BUTTON HOVER ===== */
+
 
 button,
 .btn,
@@ -722,7 +722,7 @@ input[type="submit"]:active {
 }
 
 
-/* ===== MOBILE HAMBURGER NAV ===== */
+
 .hamburger{
   display:none;
   width:44px;height:44px;
@@ -772,11 +772,10 @@ input[type="submit"]:active {
   }
 }
 
-/* X animation */
+
 .hamburger.is-open span:nth-child(1){ transform: translateY(8px) rotate(45deg); }
 .hamburger.is-open span:nth-child(2){ opacity: 0; }
 .hamburger.is-open span:nth-child(3){ transform: translateY(-8px) rotate(-45deg); }
 
 
-/* Keep topbar above content for mobile menu */
 .topbar{ position: sticky; top:0; z-index: 10000; }

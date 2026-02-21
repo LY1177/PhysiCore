@@ -11,7 +11,7 @@ async function api(path, method = "GET", body) {
 function qs(sel){ return document.querySelector(sel); }
 
 function typesetMath(rootEl){
-  // Ако MathJax е наличен – пререндерира формулите, които са в \( ... \)
+  
   if (window.MathJax && typeof MathJax.typesetPromise === 'function') {
     MathJax.typesetPromise(rootEl ? [rootEl] : undefined).catch(() => {});
   }
@@ -72,7 +72,7 @@ function renderTasks(tasks){
       </div>
     `;
 
-    // Рендерирай формулите в текущата задача
+ 
     typesetMath(area);
 
     const btnPrev = qs("#btnPrev");
@@ -89,7 +89,7 @@ function renderTasks(tasks){
         const taskId = Number(btn.dataset.task);
         const chosenIndex = Number(btn.dataset.idx);
 
-        // disable all options for this task while submitting
+        
         const card = area.querySelector(`[data-card="${taskId}"]`);
         const opts = card.querySelectorAll(".opt");
         opts.forEach(o => (o.disabled = true));
