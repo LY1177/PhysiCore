@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Симулация: Хидростатично налягане p = ρgh</title>
+  <style>
+    :root{
+      --line:#d6deea;
+      --panel:#f4f7fb;
+      --text:#1f2937;
+      --blue:#2563eb;
+      --green:#059669;
+      --red:#dc2626;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:"Segoe UI", Arial, sans-serif;
+      color:var(--text);
+      background:#0b1220;
+      padding:16px;
+    }
+    .app{
+      max-width:1150px;
+      margin:0 auto;
+      background:#fff;
+      border:1px solid #dbe3ef;
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow:0 12px 26px rgba(0,0,0,.2);
+    }
+    .head{
+      padding:14px 18px;
+      border-bottom:1px solid var(--line);
+      background:#f8fafc;
+    }
+    .head h1{ margin:0 0 4px; font-size:22px; }
+    .head p{ margin:0; color:#475569; font-size:14px; }
+
+    .layout{
+      display:grid;
+      grid-template-columns:360px 1fr;
+      min-height:640px;
+    }
+    .left{
+      border-right:1px solid var(--line);
+      background:var(--panel);
+      padding:14px;
+    }
+    .card{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+      margin-bottom:12px;
+    }
+    .card h3{
+      margin:0 0 10px;
+      font-size:16px;
+    }
+    .row{ margin-bottom:12px; }
+    label{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      font-size:14px;
+      margin-bottom:6px;
+    }
+    .val{
+      font-weight:700;
+      color:var(--blue);
+      min-width:90px;
+      text-align:right;
+    }
+    input[type="range"]{ width:100%; }
+
+    .btns{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+    }
+    button{
+      border:1px solid #c7d2e1;
+      background:#fff;
+      padding:10px 12px;
+      border-radius:10px;
+      font-weight:600;
+      cursor:pointer;
+    }
+    button.primary{
+      background:var(--blue);
+      color:#fff;
+      border-color:var(--blue);
+    }
+
+    .formula{
+      font-family:Consolas, monospace;
+      font-size:14px;
+      line-height:1.5;
+      background:#f8fafc;
+      border:1px dashed #c9d6e8;
+      border-radius:10px;
+      padding:8px;
+    }
+
+    .right{
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .scene{
+      position:relative;
+      height:420px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      overflow:hidden;
+      background:linear-gradient(#eef6ff,#ffffff 35%);
+    }
+
+    .tank{
+      position:absolute;
+      left:70px; right:70px; top:30px; bottom:20px;
+      border:4px solid #4b5563;
+      border-top:none;
+      border-radius:0 0 14px 14px;
+      overflow:hidden;
+      background:#f8fafc;
+    }
+
+    .water{
+      position:absolute;
+      left:0; right:0; bottom:0;
+      height:70%;
+      background:linear-gradient(#60a5fa,#3b82f6);
+      opacity:.88;
+    }
+    .water-line{
+      position:absolute;
+      left:0; right:0;
+      height:3px;
+      background:#93c5fd;
+      box-shadow:0 0 0 2px rgba(147,197,253,.25);
+    }
+
+    /* Сонда/точка на измерване */
+    .probe{
+      position:absolute;
+      width:18px; height:18px;
+      border-radius:50%;
+      background:#f59e0b;
+      border:3px solid #374151;
+      z-index:5;
+    }
+
+    /* Маркер за h */
+    .h-line{
+      position:absolute;
+      width:2px;
+      background:#111827;
+      z-index:4;
+    }
+    .h-cap{
+      position:absolute;
+      width:12px; height:2px;
+      background:#111827;
+      z-index:4;
+    }
+    .h-label{
+      position:absolute;
+      font-weight:700;
+      background:rgba(255,255,255,.92);
+      border:1px solid #cbd5e1;
+      border-radius:7px;
+      padding:2px 6px;
+      font-size:13px;
+      z-index:6;
+    }
+
+    /* Манометър (бар) */
+    .gauge{
+      position:absolute;
+      top:40px;
+      right:24px;
+      width:26px;
+      height:300px;
+      border:2px solid #334155;
+      border-radius:8px;
+      background:#e5e7eb;
+      overflow:hidden;
+    }
+    .gauge-fill{
+      position:absolute;
+      left:0; right:0; bottom:0;
+      height:0%;
+      background:linear-gradient(#f59e0b,#ef4444);
+    }
+    .gauge-label{
+      position:absolute;
+      right:58px;
+      top:40px;
+      font-size:13px;
+      background:#fff;
+      border:1px solid #d1d5db;
+      border-radius:8px;
+      padding:5px 8px;
+      font-weight:700;
+    }
+
+    .status{
+      font-weight:700;
+      border:1px solid #dbe3ef;
+      border-radius:10px;
+      padding:10px 12px;
+      background:#f8fafc;
+    }
+
+    .legend{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:8px;
+      font-size:13px;
+    }
+    .legend div{
+      border:1px solid var(--line);
+      background:#f8fafc;
+      border-radius:8px;
+      padding:8px;
+    }
+
+    @media (max-width:960px){
+      .layout{ grid-template-columns:1fr; }
+      .left{ border-right:0; border-bottom:1px solid var(--line); }
+      .scene{ height:390px; }
+      .tank{ left:30px; right:30px; }
+      .gauge{ right:10px; }
+      .gauge-label{ right:45px; }
+    }
+    .back-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin:16px;
+}
+.sim{
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(0,0,0,.12);
+  background:rgba(124,92,255,.95);
+  color:#fff;
+  cursor:pointer;
+  font-weight:800;
+  text-decoration:none;
+  transition:transform .08s ease, background .15s ease;
+}
+.sim:hover{ transform: translateY(-1px); }
+.sim:active{ transform: translateY(0px); }
+  </style>
+</head>
+<body>
+   <a href="handbook.html" class="sim back-btn">⬅Върни се обратно</a>
+  <div class="app">
+    <div class="head">
+      <h1>Симулация: Хидростатично налягане</h1>
+      <p>Формула: <b>p = ρgh</b> (налягането расте с дълбочината).</p>
+    </div>
+
+    <div class="layout">
+      <div class="left">
+        <div class="card">
+          <h3>Параметри</h3>
+
+          <div class="row">
+            <label>Плътност на течността ρ (kg/m³)
+              <span class="val" id="rhoVal">1000</span>
+            </label>
+            <input id="rho" type="range" min="600" max="1400" step="10" value="1000">
+          </div>
+
+          <div class="row">
+            <label>Дълбочина h (m)
+              <span class="val" id="hVal">1.20</span>
+            </label>
+            <input id="h" type="range" min="0" max="2.50" step="0.01" value="1.20">
+          </div>
+
+          <div class="row">
+            <label>g (m/s²)
+              <span class="val" id="gVal">9.80</span>
+            </label>
+            <input id="g" type="range" min="9.70" max="10.00" step="0.01" value="9.80">
+          </div>
+
+          <div class="btns">
+            <button class="primary" id="animBtn">Пусни авто h</button>
+            <button id="resetBtn">Нулирай</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Сметки в реално време</h3>
+          <div class="formula" id="calc"></div>
+        </div>
+
+        <div class="card">
+          <h3>Подсказка</h3>
+          <p style="margin:0;font-size:14px;line-height:1.5">
+            Сравни две точки в течността:<br>
+            по-дълбоката точка има по-голямо налягане.<br>
+            Ако h = 0 (на повърхността), хидростатичното налягане е 0.
+          </p>
+        </div>
+      </div>
+
+      <div class="right">
+        <div class="scene">
+          <div class="tank" id="tank">
+            <div class="water" id="water"></div>
+            <div class="water-line" id="waterLine"></div>
+
+            <div class="probe" id="probe"></div>
+
+            <div class="h-line" id="hLine"></div>
+            <div class="h-cap" id="hCapTop"></div>
+            <div class="h-cap" id="hCapBottom"></div>
+            <div class="h-label" id="hLabel">h = 0.00 m</div>
+
+            <div class="gauge">
+              <div class="gauge-fill" id="gaugeFill"></div>
+            </div>
+            <div class="gauge-label" id="gaugeLabel">p = 0 Pa</div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <div><b>Жълта точка</b>: място на измерване</div>
+          <div><b>Черна линия h</b>: дълбочина от повърхността</div>
+          <div><b>Манометър</b>: колкото е по-пълен, толкова p е по-голямо</div>
+        </div>
+
+        <div class="status" id="status">Статус: Налягането е пропорционално на h.</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const rhoInput = document.getElementById("rho");
+    const hInput = document.getElementById("h");
+    const gInput = document.getElementById("g");
+
+    const rhoVal = document.getElementById("rhoVal");
+    const hVal = document.getElementById("hVal");
+    const gVal = document.getElementById("gVal");
+
+    const calc = document.getElementById("calc");
+    const statusBox = document.getElementById("status");
+
+    const tank = document.getElementById("tank");
+    const water = document.getElementById("water");
+    const waterLine = document.getElementById("waterLine");
+
+    const probe = document.getElementById("probe");
+    const hLine = document.getElementById("hLine");
+    const hCapTop = document.getElementById("hCapTop");
+    const hCapBottom = document.getElementById("hCapBottom");
+    const hLabel = document.getElementById("hLabel");
+
+    const gaugeFill = document.getElementById("gaugeFill");
+    const gaugeLabel = document.getElementById("gaugeLabel");
+
+    const animBtn = document.getElementById("animBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    let auto = false;
+    let dir = 1;
+
+    // визуални граници: максималната h (2.5 m) се мащабира до наличната водна височина
+    const H_MAX = 2.5;
+
+    function updateWaterLine(){
+      const waterTop = tank.clientHeight - water.clientHeight;
+      waterLine.style.top = (waterTop - 1) + "px";
+    }
+
+    function compute(){
+      const rho = parseFloat(rhoInput.value);
+      const h = parseFloat(hInput.value);
+      const g = parseFloat(gInput.value);
+
+      const p = rho * g * h; // Pa
+
+      rhoVal.textContent = rho.toFixed(0);
+      hVal.textContent = h.toFixed(2);
+      gVal.textContent = g.toFixed(2);
+
+      calc.innerHTML =
+        `p = ρgh = ${rho.toFixed(0)} · ${g.toFixed(2)} · ${h.toFixed(2)}<br>` +
+        `p = <b>${p.toFixed(2)} Pa</b><br>` +
+        `≈ <b>${(p/1000).toFixed(2)} kPa</b>`;
+
+      // Позиция на точката по h
+      const waterTop = tank.clientHeight - water.clientHeight;
+      const waterBottom = tank.clientHeight;
+
+      const usablePx = waterBottom - waterTop;
+      const y = waterTop + (h / H_MAX) * usablePx; // от повърхността надолу
+
+      // ако h излиза извън визуалната вода — ограничаваме
+      const yClamped = Math.max(waterTop, Math.min(waterBottom - 10, y));
+
+      // Сонда
+      probe.style.left = (tank.clientWidth * 0.35) + "px";
+      probe.style.top = (yClamped - 9) + "px";
+
+      // Линия h
+      const xLine = tank.clientWidth * 0.24;
+      hLine.style.left = xLine + "px";
+      hLine.style.top = waterTop + "px";
+      hLine.style.height = (yClamped - waterTop) + "px";
+
+      hCapTop.style.left = (xLine - 5) + "px";
+      hCapTop.style.top = waterTop + "px";
+
+      hCapBottom.style.left = (xLine - 5) + "px";
+      hCapBottom.style.top = yClamped + "px";
+
+      hLabel.style.left = (xLine + 10) + "px";
+      hLabel.style.top = ((waterTop + yClamped) / 2 - 11) + "px";
+      hLabel.textContent = `h = ${h.toFixed(2)} m`;
+
+      // Манометър: 0..max спрямо H_MAX и max rho/g от слайдерите
+      const pMax = 1400 * 10.0 * H_MAX; // приблизителен максимум
+      const fillPercent = Math.max(0, Math.min(100, (p / pMax) * 100));
+
+      gaugeFill.style.height = fillPercent + "%";
+      gaugeLabel.textContent = `p = ${p.toFixed(0)} Pa`;
+
+      if(h < 0.05){
+        statusBox.textContent = "Статус: На повърхността (h≈0), хидростатичното налягане е почти 0.";
+      } else if (h < 1.2){
+        statusBox.textContent = "Статус: Умерена дълбочина → налягането нараства.";
+      } else {
+        statusBox.textContent = "Статус: По-голяма дълбочина → значително по-голямо налягане.";
+      }
+    }
+
+    function animate(){
+      if(auto){
+        let h = parseFloat(hInput.value);
+        h += dir * 0.01;
+        if(h >= H_MAX){ h = H_MAX; dir = -1; }
+        if(h <= 0){ h = 0; dir = 1; }
+        hInput.value = h.toFixed(2);
+        compute();
+      }
+      requestAnimationFrame(animate);
+    }
+
+    [rhoInput, hInput, gInput].forEach(el => {
+      el.addEventListener("input", compute);
+    });
+
+    animBtn.addEventListener("click", () => {
+      auto = !auto;
+      animBtn.textContent = auto ? "Стоп авто h" : "Пусни авто h";
+    });
+
+    resetBtn.addEventListener("click", () => {
+      rhoInput.value = 1000;
+      hInput.value = 1.20;
+      gInput.value = 9.80;
+      auto = false;
+      animBtn.textContent = "Пусни авто h";
+      compute();
+    });
+
+    window.addEventListener("resize", () => {
+      updateWaterLine();
+      compute();
+    });
+
+    updateWaterLine();
+    compute();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

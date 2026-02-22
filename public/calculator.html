@@ -1,421 +1,395 @@
 <!doctype html>
 <html lang="bg">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Калкулатор</title>
-    <style>
-      :root {
-        --bg0: #070a12;
-        --bg1: #0b1020;
-        --card: rgba(255, 255, 255, 0.06);
-        --stroke: rgba(255, 255, 255, 0.1);
-        --text: #eaf1ff;
-        --muted: rgba(234, 241, 255, 0.6);
-        --accent: #997ae1;
-        --shadow: 0 20px 60px rgba(80, 38, 164, 0.6);
-        --rad: 18px;
-      }
-      * {
-        box-sizing: border-box;
-      }
-      html,
-      body {
-        width: 100%;
-      }
-      body {
-        margin: 0;
-        min-height: 100vh;
-        color: var(--text);
-        font-family:
-          system-ui,
-          Segoe UI,
-          Roboto,
-          Arial;
-        background: #0b1020;
-        overflow-x: hidden;
-      }
-      body:before {
-        content: "";
-        position: fixed;
-        inset: 0;
-        background:
-          linear-gradient(
-            to right,
-            rgba(255, 255, 255, 0.05) 1px,
-            transparent 1px
-          ),
-          linear-gradient(
-            to bottom,
-            rgba(255, 255, 255, 0.05) 1px,
-            transparent 1px
-          );
-        background-size: 44px 44px;
-        opacity: 0.12;
-        pointer-events: none;
-        mask-image: radial-gradient(
-          650px 450px at 50% 30%,
-          #000 55%,
-          transparent 78%
-        );
-      }
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Калкулатор</title>
 
-      .wrap {
-        max-width: 900px;
-        margin: auto;
-        padding: 50px 16px;
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        min-width: 0;
-      }
-      h1 {
-        text-align: center;
-        font-size: 34px;
-        margin: 0;
-      }
-      .sub {
-        text-align: center;
-        color: var(--muted);
-        font-size: 14px;
-      }
+  <style>
+    :root {
+      --bg0: #070a12;
+      --bg1: #0b1020;
+      --card: rgba(255, 255, 255, 0.06);
+      --stroke: rgba(255, 255, 255, 0.1);
+      --text: #eaf1ff;
+      --muted: rgba(234, 241, 255, 0.6);
+      --accent: #997ae1;
+      --shadow: 0 20px 60px rgba(80, 38, 164, 0.6);
+      --rad: 18px;
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: system-ui, Segoe UI, Roboto, Arial;
+      background: var(--bg1);
+      overflow-x: hidden;
+    }
+    body:before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+      background-size: 44px 44px;
+      opacity: 0.12;
+      pointer-events: none;
+      mask-image: radial-gradient(650px 450px at 50% 30%, #000 55%, transparent 78%);
+    }
 
-      .card {
-        background: linear-gradient(
-          180deg,
-          rgba(255, 255, 255, 0.07),
-          rgba(255, 255, 255, 0.04)
-        );
-        border: 1px solid var(--stroke);
-        border-radius: var(--rad);
-        box-shadow: var(--shadow);
-        backdrop-filter: blur(12px);
-        min-width: 0;
-      }
+    .wrap {
+      max-width: 900px;
+      margin: auto;
+      padding: 50px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-width: 0;
+    }
+    h1 { text-align: center; font-size: 34px; margin: 0; }
+    .sub { text-align: center; color: var(--muted); font-size: 14px; }
 
-      .tabs {
-        display: flex;
-        gap: 10px;
-        padding: 18px;
-        flex-wrap: wrap;
-        min-width: 0;
-      }
-      .tab {
-        padding: 10px 14px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        background: rgba(255, 255, 255, 0.04);
-        color: var(--muted);
-        cursor: pointer;
-        font-weight: 800;
-      }
-      .tab.active {
-        background: #997ae1;
-        border-color: rgba(30, 144, 255, 0.5);
-        color: #ffffff;
-      }
+    .card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.04));
+      border: 1px solid var(--stroke);
+      border-radius: var(--rad);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+      min-width: 0;
+    }
 
-      .formula {
-        margin: 0 18px 16px;
-        padding: 18px;
-        border-radius: 14px;
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        text-align: center;
-        font-size: 22px;
-        font-weight: 900;
-        color: var(--accent);
-        min-width: 0;
-      }
+    .tabs {
+      display: flex;
+      gap: 10px;
+      padding: 18px;
+      flex-wrap: wrap;
+      min-width: 0;
+    }
+    .tab {
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 800;
+      user-select: none;
+    }
+    .tab.active {
+      background: var(--accent);
+      border-color: rgba(30, 144, 255, 0.5);
+      color: #ffffff;
+    }
 
-      .content {
-        padding: 0 18px 18px;
-      }
-      .grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
-        min-width: 0;
-      }
-      @media (max-width: 600px) {
-        .grid {
-          grid-template-columns: 1fr;
-        }
-      }
+    .formula {
+      margin: 0 18px 16px;
+      padding: 18px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      text-align: center;
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--accent);
+      min-width: 0;
+    }
 
-      .field {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        min-width: 0;
-      }
-      label {
-        font-size: 12px;
-        color: var(--muted);
-      }
-      .inputWrap {
-        position: relative;
-        min-width: 0;
-      }
-      input {
-        width: 100%;
-        padding: 14px 50px 14px 14px;
-        border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        background: rgb(44, 49, 87);
-        color: #fff;
-        font-size: 14px;
-        min-width: 0;
-      }
-      .unit {
-        position: absolute;
-        right: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 12px;
-        color: var(--muted);
-      }
+    .content { padding: 0 18px 18px; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      min-width: 0;
+    }
+    @media (max-width: 600px) {
+      .grid { grid-template-columns: 1fr; }
+    }
 
-      .actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 16px;
-        min-width: 0;
-        flex-wrap: wrap;
-      }
-      button {
-        flex: 1;
-        padding: 14px;
-        border-radius: 14px;
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        background: rgba(255, 255, 255, 0.05);
-        color: #fff;
-        font-weight: 900;
-        cursor: pointer;
-        min-width: 0;
-      }
-      .primary {
-        background: #997ae1;
-        border-color: rgba(30, 144, 255, 0.6);
-      }
+    .field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    label { font-size: 12px; color: var(--muted); }
 
-      .result {
-        margin-top: 14px;
-        padding: 14px;
-        border-radius: 14px;
-        background: rgb(44, 49, 87);
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 12px;
-        min-width: 0;
-      }
-      .result b {
-        color: var(--muted);
-        font-size: 12px;
-      }
-      .value {
-        font-size: 20px;
-        font-weight: 900;
-      }
-      .err {
-        color: #ff6b81;
-      }
+    .inputWrap { position: relative; min-width: 0; }
+    input {
+      width: 100%;
+      padding: 14px 50px 14px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: rgb(44, 49, 87);
+      color: #fff;
+      font-size: 14px;
+      min-width: 0;
+    }
+    .unit {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      color: var(--muted);
+      pointer-events: none; /* важно */
+    }
 
-      @media (max-width: 480px) {
-        .wrap {
-          padding: 28px 14px;
-        }
-        h1 {
-          font-size: 28px;
-        }
-        .tabs {
-          padding: 14px;
-        }
-        .tab {
-          flex: 1 1 auto;
-        }
-        .formula {
-          font-size: 18px;
-          padding: 14px;
-          margin: 0 14px 14px;
-        }
-        .content {
-          padding: 0 14px 14px;
-        }
-        .actions {
-          flex-direction: column;
-        }
-        button {
-          flex: none;
-          width: 100%;
-        }
-        .result {
-          flex-direction: column;
-          align-items: flex-start;
-        }
-        .value {
-          font-size: 18px;
-        }
-      }
-    </style>
-  </head>
+    .actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+    button {
+      flex: 1;
+      padding: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-weight: 900;
+      cursor: pointer;
+      min-width: 0;
+    }
+    .primary {
+      background: var(--accent);
+      border-color: rgba(30, 144, 255, 0.6);
+    }
 
-  <body>
-    <div class="wrap">
-      <h1>📝 Калкулатор</h1>
-      <div class="sub">Избери формула и въведи стойности</div>
+    .result {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 14px;
+      background: rgb(44, 49, 87);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .result b { color: var(--muted); font-size: 12px; }
+    .value { font-size: 20px; font-weight: 900; }
+    .err { color: #ff6b81; }
 
-      <div class="card">
-        <div class="tabs" id="tabs"></div>
-        <div class="formula" id="formula"></div>
+    @media (max-width: 480px) {
+      .wrap { padding: 28px 14px; }
+      h1 { font-size: 28px; }
+      .tabs { padding: 14px; }
+      .tab { flex: 1 1 auto; }
+      .formula { font-size: 18px; padding: 14px; margin: 0 14px 14px; }
+      .content { padding: 0 14px 14px; }
+      .actions { flex-direction: column; }
+      button { flex: none; width: 100%; }
+      .result { flex-direction: column; align-items: flex-start; }
+      .value { font-size: 18px; }
+    }
+  </style>
+</head>
 
-        <div class="content">
-          <div class="grid" id="fields"></div>
+<body>
+  <div class="wrap">
+    <h1>📝 Калкулатор</h1>
+    <div class="sub">Избери формула и въведи стойности</div>
 
-          <div class="actions">
-            <button class="primary" onclick="calc()">Изчисли →</button>
-            <button onclick="resetAll()">Нулирай</button>
+    <div class="card" id="app">
+      <div class="tabs" id="tabs"></div>
+      <div class="formula" id="formula"></div>
+
+      <div class="content">
+        <div class="grid" id="fields"></div>
+
+        <div class="actions">
+          <button class="primary" id="btnCalc" type="button">Изчисли →</button>
+          <button id="btnReset" type="button">Нулирай</button>
+        </div>
+
+        <div class="result">
+          <div>
+            <b>Резултат</b><br />
+            <span id="meta" style="font-size: 12px; color: var(--muted)">—</span>
           </div>
-
-          <div class="result">
-            <div>
-              <b>Резултат</b><br />
-              <span id="meta" style="font-size: 12px; color: var(--muted)"
-                >—</span
-              >
-            </div>
-            <div class="value" id="result">—</div>
-          </div>
+          <div class="value" id="result">—</div>
         </div>
       </div>
     </div>
+  </div>
 
-    <script>
-      const F = [
+  <script>
+    // НОВ калкулатор: без inline JS, без "vals", чете директно input-ите
+    document.addEventListener("DOMContentLoaded", () => {
+      const formulas = [
         {
+          id: "speed",
           name: "Скорост",
-          formula: "v = s / t",
-          out: { u: "m/s", k: "v" },
-          in: [
-            ["s", "Разстояние", "m"],
-            ["t", "Време", "s"],
+          formulaText: "v = s / t",
+          out: { key: "v", unit: "m/s" },
+          inputs: [
+            { key: "s", label: "Разстояние", unit: "m" },
+            { key: "t", label: "Време", unit: "s" },
           ],
-          f: (x) => (x.t ? x.s / x.t : null),
+          calc: ({ s, t }) => (t === 0 ? null : s / t),
         },
-
         {
+          id: "force",
           name: "Сила",
-          formula: "F = m · a",
-          out: { u: "N", k: "F" },
-          in: [
-            ["m", "Маса", "kg"],
-            ["a", "Ускорение", "m/s²"],
+          formulaText: "F = m · a",
+          out: { key: "F", unit: "N" },
+          inputs: [
+            { key: "m", label: "Маса", unit: "kg" },
+            { key: "a", label: "Ускорение", unit: "m/s²" },
           ],
-          f: (x) => x.m * x.a,
+          calc: ({ m, a }) => m * a,
         },
-
         {
+          id: "ke",
           name: "Кинетична енергия",
-          formula: "Eₖ = ½ m v²",
-          out: { u: "J", k: "Eₖ" },
-          in: [
-            ["m", "Маса", "kg"],
-            ["v", "Скорост", "m/s"],
+          formulaText: "Eₖ = ½ m v²",
+          out: { key: "Eₖ", unit: "J" },
+          inputs: [
+            { key: "m", label: "Маса", unit: "kg" },
+            { key: "v", label: "Скорост", unit: "m/s" },
           ],
-          f: (x) => 0.5 * x.m * x.v * x.v,
+          calc: ({ m, v }) => 0.5 * m * v * v,
         },
-
         {
+          id: "pe",
           name: "Потенциална енергия",
-          formula: "Eₚ = m g h",
-          out: { u: "J", k: "Eₚ" },
-          in: [
-            ["m", "Маса", "kg"],
-            ["g", "g", "m/s²"],
-            ["h", "Височина", "m"],
+          formulaText: "Eₚ = m g h",
+          out: { key: "Eₚ", unit: "J" },
+          inputs: [
+            { key: "m", label: "Маса", unit: "kg" },
+            { key: "g", label: "g", unit: "m/s²" },
+            { key: "h", label: "Височина", unit: "m" },
           ],
-          f: (x) => x.m * x.g * x.h,
+          calc: ({ m, g, h }) => m * g * h,
         },
-
         {
+          id: "ohm",
           name: "Закон на Ом",
-          formula: "V = I R",
-          out: { u: "V", k: "V" },
-          in: [
-            ["I", "Ток", "A"],
-            ["R", "Съпротивление", "Ω"],
+          formulaText: "V = I R",
+          out: { key: "V", unit: "V" },
+          inputs: [
+            { key: "I", label: "Ток", unit: "A" },
+            { key: "R", label: "Съпротивление", unit: "Ω" },
           ],
-          f: (x) => x.I * x.R,
+          calc: ({ I, R }) => I * R,
         },
-
         {
+          id: "rho",
           name: "Плътност",
-          formula: "ρ = m / V",
-          out: { u: "kg/m³", k: "ρ" },
-          in: [
-            ["m", "Маса", "kg"],
-            ["V", "Обем", "m³"],
+          formulaText: "ρ = m / V",
+          out: { key: "ρ", unit: "kg/m³" },
+          inputs: [
+            { key: "m", label: "Маса", unit: "kg" },
+            { key: "V", label: "Обем", unit: "m³" },
           ],
-          f: (x) => (x.V ? x.m / x.V : null),
+          calc: ({ m, V }) => (V === 0 ? null : m / V),
         },
       ];
 
-      let cur = F[0],
-        vals = {};
+      const elTabs = document.getElementById("tabs");
+      const elFormula = document.getElementById("formula");
+      const elFields = document.getElementById("fields");
+      const elRes = document.getElementById("result");
+      const elMeta = document.getElementById("meta");
+      const btnCalc = document.getElementById("btnCalc");
+      const btnReset = document.getElementById("btnReset");
 
-      const tabs = document.getElementById("tabs"),
-        formula = document.getElementById("formula"),
-        fields = document.getElementById("fields"),
-        res = document.getElementById("result"),
-        meta = document.getElementById("meta");
+      let current = formulas[0];
+
+      function toNumber(str) {
+        const s = (str ?? "").toString().trim().replace(",", ".");
+        if (s === "") return { ok: false, msg: "Празно поле" };
+        const n = Number(s);
+        if (!Number.isFinite(n)) return { ok: false, msg: "Невалидно число" };
+        return { ok: true, value: n };
+      }
+
+      function setResult(text, meta, isError = false) {
+        if (isError) {
+          elRes.innerHTML = `<span class="err">${text}</span>`;
+        } else {
+          elRes.textContent = text;
+        }
+        elMeta.textContent = meta ?? "—";
+      }
 
       function render() {
-        tabs.innerHTML = "";
-        F.forEach((f) => {
-          let b = document.createElement("div");
-          b.className = "tab" + (f === cur ? " active" : "");
-          b.textContent = f.name;
-          b.onclick = () => {
-            cur = f;
-            vals = {};
+        // tabs
+        elTabs.innerHTML = "";
+        for (const f of formulas) {
+          const t = document.createElement("div");
+          t.className = "tab" + (f === current ? " active" : "");
+          t.textContent = f.name;
+          t.addEventListener("click", () => {
+            current = f;
             render();
-          };
-          tabs.appendChild(b);
+          });
+          elTabs.appendChild(t);
+        }
+
+        // formula text
+        elFormula.textContent = current.formulaText;
+
+        // fields
+        elFields.innerHTML = "";
+        for (const inp of current.inputs) {
+          const field = document.createElement("div");
+          field.className = "field";
+          field.innerHTML = `
+            <label>${inp.label}</label>
+            <div class="inputWrap">
+              <input id="in_${inp.key}" inputmode="decimal" placeholder="Въведи число">
+              <div class="unit">${inp.unit}</div>
+            </div>
+          `;
+          elFields.appendChild(field);
+        }
+
+        // Enter = calc
+        elFields.querySelectorAll("input").forEach((input) => {
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") doCalc();
+          });
         });
-        formula.textContent = cur.formula;
-        fields.innerHTML = "";
-        cur.in.forEach((i) => {
-          fields.innerHTML += `
-<div class="field">
-<label>${i[1]}</label>
-<div class="inputWrap">
-<input oninput="vals['${i[0]}']=parseFloat(this.value)||0">
-<div class="unit">${i[2]}</div>
-</div></div>`;
-        });
-        res.textContent = "—";
-        meta.textContent = "—";
+
+        setResult("—", "—");
       }
-      function calc() {
-        let x = {};
-        cur.in.forEach((i) => (x[i[0]] = vals[i[0]] || 0));
-        let r = cur.f(x);
-        if (r === null || !isFinite(r)) {
-          res.innerHTML = '<span class="err">Грешка</span>';
-          meta.textContent = "Невалидни данни";
+
+      function readInputs() {
+        const data = {};
+        for (const inp of current.inputs) {
+          const el = document.getElementById("in_" + inp.key);
+          const parsed = toNumber(el.value);
+          if (!parsed.ok) {
+            return { ok: false, msg: `${inp.label}: ${parsed.msg}` };
+          }
+          data[inp.key] = parsed.value;
+        }
+        return { ok: true, data };
+      }
+
+      function doCalc() {
+        const read = readInputs();
+        if (!read.ok) {
+          setResult("Грешка", read.msg, true);
           return;
         }
-        res.textContent =
-          (Math.abs(r) > 1000 ? r.toFixed(3) : r.toFixed(6)) + " " + cur.out.u;
-        meta.textContent = cur.out.k;
+
+        const r = current.calc(read.data);
+
+        if (r === null || !Number.isFinite(r)) {
+          setResult("Грешка", "Невалидни данни (деление на 0?)", true);
+          return;
+        }
+
+        const out = (Math.abs(r) > 1000 ? r.toFixed(3) : r.toFixed(6)) + " " + current.out.unit;
+        setResult(out, current.out.key);
       }
-      function resetAll() {
-        vals = {};
-        render();
+
+      function doReset() {
+        render(); // презарежда полетата чисти
       }
+
+      btnCalc.addEventListener("click", doCalc);
+      btnReset.addEventListener("click", doReset);
+
       render();
-    </script>
-  </body>
+    });
+  </script>
+</body>
 </html>

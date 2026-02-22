@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Равномерно движение</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  :root{--bg:#071022;--card:#0e1a34;--stroke:#223055;--accent:#7c5cff;--text:#e9eefc}
+  body{margin:0;font-family:system-ui,Segoe UI,Arial;}
+  .wrap{max-width:1100px;margin:28px auto;padding:0 16px}
+  .card{background:linear-gradient(180deg,#0f1c38,#0b142b);border:1px solid #1f2c55;border-radius:18px;padding:18px}
+  h2{margin:0 0 14px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:10px}
+  label{display:block;font-size:13px;opacity:.9;margin-bottom:6px}
+  input{
+  width:190px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(0,0,0,.18);
+  background:#f4f6ff;
+  color:#0b1220;
+  box-shadow:0 6px 18px rgba(0,0,0,.18);
+}
+
+input:focus{
+  outline:none;
+  border-color:rgba(124,92,255,.95);
+  box-shadow:0 0 0 4px rgba(124,92,255,.22), 0 6px 18px rgba(0,0,0,.18);
+  input:-webkit-autofill{
+  -webkit-text-fill-color:#0b1220;
+  -webkit-box-shadow:0 0 0px 1000px #f4f6ff inset;
+}
+}
+  .btn{padding:10px 14px;border:0;border-radius:12px;background:var(--accent);color:white;cursor:pointer}
+  .btn.secondary{background:#25325f}
+  .pills{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 14px}
+  .pill{background:#0a1532;border:1px solid #263a73;border-radius:999px;padding:8px 12px}
+canvas{
+  width:100%;
+  height:290px;
+  border-radius:16px;
+  background:#f4f6ff;
+  border:1px solid rgba(0,0,0,.12);
+  box-shadow:0 8px 24px rgba(0,0,0,.18);
+}
+  .hint{margin:12px 0 0;opacity:.85}
+.back-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin:16px;
+}
+.sim{
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(0,0,0,.12);
+  background:rgba(124,92,255,.95);
+  color:#fff;
+  cursor:pointer;
+  font-weight:800;
+  text-decoration:none;
+  transition:transform .08s ease, background .15s ease;
+}
+.sim:hover{ transform: translateY(-1px); }
+.sim:active{ transform: translateY(0px); }
+</style>
+</head>
+<body>
+  <a href="handbook.html" class="sim back-btn">⬅Върни се обратно</a>
+<div class="wrap">
+  <div class="card">
+    <h2>Равномерно движение</h2>
+
+    <div class="row">
+      <div>
+        <label>Скорост v (m/s)</label>
+        <input id="v" type="number" value="2" step="0.1" min="0">
+      </div>
+      <div>
+        <label>Време T (s)</label>
+        <input id="T" type="number" value="10" step="1" min="1">
+      </div>
+      <button class="btn" id="start">Старт</button>
+      <button class="btn secondary" id="pause">Пауза</button>
+      <button class="btn secondary" id="reset">Нулирай</button>
+    </div>
+
+    <div class="pills">
+      <div class="pill">t = <span id="tOut">0.0</span> s</div>
+      <div class="pill">s = <span id="sOut">0.0</span> m</div>
+    </div>
+
+    <canvas id="c" width="1100" height="290"></canvas>
+    <p class="hint">s = v·t (пътят расте линейно)</p>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+const vEl = document.getElementById('v');
+const TEl = document.getElementById('T');
+const tOut = document.getElementById('tOut');
+const sOut = document.getElementById('sOut');
+
+let running=false, last=0, t=0;
+
+// обновяване на стойности
+let lastUIUpdate = 0;
+const UI_INTERVAL = 200; // ms ~ 5 пъти/сек
+
+function draw(){
+  const W=canvas.width, H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  const v = Math.max(0, Number(vEl.value||0));
+  const T = Math.max(1, Number(TEl.value||1));
+  const s = v*t;
+
+  // отделна зона за текст 
+  const TOP_PAD = 78;
+
+  // текст
+  ctx.fillStyle = "#0b1220";   // тъмен текст за бял фон;
+  ctx.font="18px system-ui";
+  ctx.fillText(`v = ${v.toFixed(2)} m/s`, 24, 32);
+  ctx.fillText(`s = v·t = ${s.toFixed(2)} m`, 24, 58);
+
+  // път
+  const roadY = H - 65;
+  ctx.strokeStyle="#2a3a70"; ctx.lineWidth=8;
+  ctx.beginPath(); ctx.moveTo(70, roadY); ctx.lineTo(W-70, roadY); ctx.stroke();
+
+  // мащаб
+  const sMax = v*T;
+  const x0=70, x1=W-70;
+  const x = x0 + (sMax>0 ? (s/sMax)*(x1-x0) : 0);
+
+  // кола (emoji)
+  const car = "🚗";
+  const size = 44;
+  const yCar = roadY - 10;
+
+  ctx.font = `${size}px system-ui`;
+  const carW = ctx.measureText(car).width; // реална ширина на emoji-то
+
+  // заключване да не излиза от линията
+  const minX = x0;
+  const maxX = x1 - carW;
+  const xClamped = Math.max(minX, Math.min(maxX, x));
+
+  ctx.save();
+  ctx.translate(xClamped, yCar);
+  ctx.scale(-1, 1);
+  ctx.fillText(car, -size*1.3, 0);
+  ctx.restore();
+}
+
+function step(ts){
+  if(!running){ last=ts; requestAnimationFrame(step); return; }
+  const dt = Math.min(0.03, (ts-last)/1000);
+  last = ts;
+
+  const T = Math.max(1, Number(TEl.value||1));
+  t = Math.min(T, t + dt);
+
+  draw();
+
+  // UI (не мига)
+  if(ts - lastUIUpdate > UI_INTERVAL){
+    lastUIUpdate = ts;
+    const v = Math.max(0, Number(vEl.value||0));
+    const s = v*t;
+    tOut.textContent = t.toFixed(1);
+    sOut.textContent = s.toFixed(1);
+  }
+
+  if(t>=T) running=false;
+  requestAnimationFrame(step);
+}
+
+document.getElementById('start').onclick=()=>{ if(!running){ running=true; } };
+document.getElementById('pause').onclick=()=>{ running=false; };
+document.getElementById('reset').onclick=()=>{ running=false; t=0; draw(); tOut.textContent="0.0"; sOut.textContent="0.0"; };
+
+draw();
+requestAnimationFrame(step);
+</script>
+</body>
+</html>

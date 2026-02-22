@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Свободно падане</title>
+<link rel="stylesheet" href="style.css">  
+<style>
+  :root{--bg:#071022;--accent:#7c5cff;--text:#e9eefc}
+  body{margin:0;font-family:system-ui,Segoe UI,Arial;}
+  .wrap{max-width:1100px;margin:28px auto;padding:0 16px}
+  .card{background:linear-gradient(180deg,#0f1c38,#0b142b);border:1px solid #1f2c55;border-radius:18px;padding:18px}
+  h2{margin:0 0 14px}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin-bottom:10px}
+  label{display:block;font-size:13px;opacity:.9;margin-bottom:6px}
+input{
+  width:190px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid rgba(0,0,0,.18);
+  background:#f4f6ff;
+  color:#0b1220;
+  box-shadow:0 6px 18px rgba(0,0,0,.18);
+}
+
+input:focus{
+  outline:none;
+  border-color:rgba(124,92,255,.95);
+  box-shadow:0 0 0 4px rgba(124,92,255,.22), 0 6px 18px rgba(0,0,0,.18);
+}  .btn{padding:10px 14px;border:0;border-radius:12px;background:var(--accent);color:white;cursor:pointer}
+  .btn.secondary{background:#25325f}
+  .pills{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 14px}
+.pill{
+  background:#f4f6ff;
+  color:#0b1220;
+  border:1px solid rgba(0,0,0,.12);
+  border-radius:999px;
+  padding:8px 12px;
+  box-shadow:0 6px 18px rgba(0,0,0,.16);
+}canvas{
+  width:100%;
+  height:290px;
+  border-radius:16px;
+  background:#f4f6ff;
+  border:1px solid rgba(0,0,0,.12);
+  box-shadow:0 8px 24px rgba(0,0,0,.18);
+}  .hint{margin:12px 0 0;opacity:.85}
+input:-webkit-autofill{
+  -webkit-text-fill-color:#0b1220;
+  -webkit-box-shadow:0 0 0px 1000px #ffffff inset;
+}
+.back-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin:16px;
+}
+.sim{
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(0,0,0,.12);
+  background:rgba(124,92,255,.95);
+  color:#fff;
+  cursor:pointer;
+  font-weight:800;
+  text-decoration:none;
+  transition:transform .08s ease, background .15s ease;
+}
+.sim:hover{ transform: translateY(-1px); }
+.sim:active{ transform: translateY(0px); }
+</style>
+</head>
+<body>
+  <a href="handbook.html" class="sim back-btn">⬅Върни се обратно</a>
+<div class="wrap">
+  <div class="card">
+    <h2>Свободно падане</h2>
+
+    <div class="row">
+      <div><label>Височина H (m)</label><input id="H" type="number" value="20" step="1" min="1"></div>
+      <div><label>g (m/s²)</label><input id="g" type="number" value="9.8" step="0.1" min="0"></div>
+      <button class="btn" id="start">Пусни</button>
+      <button class="btn secondary" id="pause">Пауза</button>
+      <button class="btn secondary" id="reset">Нулирай</button>
+    </div>
+
+    <div class="pills">
+      <div class="pill">t = <span id="tOut">0.0</span> s</div>
+      <div class="pill">v = <span id="vOut">0.0</span> m/s</div>
+      <div class="pill">h = <span id="hOut">0.0</span> m</div>
+    </div>
+
+    <canvas id="c" width="1100" height="360"></canvas>
+    <p class="hint">v = g·t, h = (g·t²)/2 (без съпротивление на въздуха)</p>
+  </div>
+</div>
+
+<script>
+const c = document.getElementById('c');
+const ctx = c.getContext('2d');
+
+const HEl = document.getElementById('H');
+const gEl = document.getElementById('g');
+
+const tOut = document.getElementById('tOut');
+const vOut = document.getElementById('vOut');
+const hOut = document.getElementById('hOut');
+
+let running=false, last=0, t=0;
+
+let lastUIUpdate = 0;
+const UI_INTERVAL = 200; // ms
+
+function vals(){
+  const H=Math.max(1,Number(HEl.value||1));
+  const g=Math.max(0,Number(gEl.value||0));
+  return {H,g};
+}
+  
+function draw(){
+  const {H,g}=vals();
+  const W=c.width, Hpx=c.height;
+
+  const h = 0.5*g*t*t;
+  const v = g*t;
+  const hClamped = Math.min(H, h);
+
+  ctx.clearRect(0,0,W,Hpx);
+
+  // отделна зона за текст
+  const TOP_PAD = 90;
+
+  ctx.fillStyle="#0b1220";
+  ctx.font="18px system-ui";
+  ctx.fillText(`v = g·t = ${v.toFixed(2)} m/s`, 24, 34);
+  ctx.fillText(`h = (g·t²)/2 = ${hClamped.toFixed(2)} m`, 24, 62);
+
+  // рамка
+  ctx.strokeStyle="#1f2c55"; ctx.lineWidth=2;
+  ctx.strokeRect(18, TOP_PAD, W-36, Hpx-TOP_PAD-18);
+
+  const top = TOP_PAD + 20;
+  const bottom = Hpx - 60;
+
+  
+  // мащаб
+  const y = top + (hClamped/H)*(bottom-top);
+
+  // ябълка
+  const appleX = W*0.42 - 22;
+const appleFont = 44;
+ctx.font = `${appleFont}px system-ui`;
+
+// Колко пиксела подава emoji-то под baseline (на око, стабилно)
+const appleBottomOffset = 10;
+
+// yApple е baseline. Искаме дъното на ябълката да е точно на "y" (позицията на тялото),
+// а когато стигне земята, y == bottom, така ще легне на линията.
+const yApple = y + appleFont - appleBottomOffset;
+
+ctx.fillText("🍎", appleX, yApple);
+}
+
+function step(ts){
+  if(!running){ last=ts; requestAnimationFrame(step); return; }
+  const dt=Math.min(0.03,(ts-last)/1000);
+  last=ts;
+
+  const {H,g}=vals();
+  t += dt;
+
+  const h = 0.5*g*t*t;
+  if(h>=H){
+    t = Math.sqrt(2*H/Math.max(g,1e-9));
+    running=false;
+  }
+
+  draw();
+
+  if(ts - lastUIUpdate > UI_INTERVAL){
+    lastUIUpdate = ts;
+    const v = g*t;
+    const h2 = Math.min(H, 0.5*g*t*t);
+    tOut.textContent=t.toFixed(1);
+    vOut.textContent=v.toFixed(1);
+    hOut.textContent=h2.toFixed(1);
+  }
+
+  requestAnimationFrame(step);
+}
+
+document.getElementById('start').onclick=()=>{ if(!running){ running=true; } };
+document.getElementById('pause').onclick=()=>{ running=false; };
+document.getElementById('reset').onclick=()=>{ running=false; t=0; draw(); tOut.textContent="0.0"; vOut.textContent="0.0"; hOut.textContent="0.0"; };
+
+draw();
+requestAnimationFrame(step);
+</script>
+</body>
+</html>

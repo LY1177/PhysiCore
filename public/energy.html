@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Симулация: Кинетична и потенциална енергия</title>
+  <style>
+    :root{
+      --panel:#f4f7fb;
+      --line:#cfd8e3;
+      --text:#1f2937;
+      --accent:#2563eb;
+      --ok:#0f766e;
+      --warn:#b45309;
+      --vio:#7c3aed;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:"Segoe UI",Arial,sans-serif;
+      color:var(--text);
+      background:#0b1220;
+      padding:16px;
+    }
+    .app{
+      max-width:1100px;
+      margin:0 auto;
+      background:#fff;
+      border:1px solid #dbe3ef;
+      border-radius:14px;
+      overflow:hidden;
+      box-shadow:0 12px 28px rgba(0,0,0,.2);
+    }
+    .head{
+      padding:14px 18px;
+      border-bottom:1px solid var(--line);
+      background:#f8fafc;
+    }
+    .head h1{ margin:0 0 6px 0; font-size:22px; }
+    .head p{ margin:0; color:#475569; font-size:14px; }
+
+    .layout{
+      display:grid;
+      grid-template-columns:340px 1fr;
+      min-height:640px;
+    }
+    .left{
+      border-right:1px solid var(--line);
+      background:var(--panel);
+      padding:14px;
+    }
+    .card{
+      background:#fff;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+      margin-bottom:12px;
+    }
+    .card h3{ margin:0 0 10px; font-size:16px; }
+    .row{ margin-bottom:12px; }
+    label{
+      display:flex;
+      justify-content:space-between;
+      font-size:14px;
+      margin-bottom:6px;
+      gap:10px;
+    }
+    input[type="range"]{ width:100%; }
+    .val{
+      font-weight:700;
+      color:var(--accent);
+      min-width:84px;
+      text-align:right;
+    }
+    .btns{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+    }
+    button{
+      border:1px solid #c7d2e1;
+      background:#fff;
+      padding:10px 12px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:600;
+    }
+    button.primary{
+      background:var(--accent);
+      color:#fff;
+      border-color:var(--accent);
+    }
+    .formula{
+      font-family:Consolas, monospace;
+      background:#f8fafc;
+      border:1px dashed #c9d6e8;
+      border-radius:10px;
+      padding:8px;
+      line-height:1.55;
+      font-size:14px;
+    }
+
+    .right{
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+    .scene{
+      position:relative;
+      height:420px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      overflow:hidden;
+      background:linear-gradient(#eef6ff,#ffffff 40%);
+    }
+    .ground{
+      position:absolute;
+      left:0; right:0; bottom:60px;
+      height:12px;
+      background:#8b95a7;
+    }
+    .tower{
+      position:absolute;
+      left:40px;
+      bottom:72px;
+      width:14px;
+      height:260px;
+      background:#94a3b8;
+      border-radius:10px;
+      box-shadow: inset 0 0 0 2px rgba(0,0,0,.06);
+    }
+    .heightMark{
+      position:absolute;
+      left:70px;
+      bottom:72px;
+      width:2px;
+      height:260px;
+      background:rgba(37,99,235,.25);
+    }
+    .ball{
+      position:absolute;
+      left:130px;
+      width:46px;
+      height:46px;
+      border-radius:50%;
+      background:#f59e0b;
+      border:3px solid #374151;
+      display:grid;
+      place-items:center;
+      font-weight:800;
+      user-select:none;
+    }
+
+    .bars{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:8px;
+    }
+    .barCard{
+      background:#f8fafc;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px;
+    }
+    .barTop{
+      display:flex;
+      justify-content:space-between;
+      font-size:13px;
+      color:#334155;
+      margin-bottom:8px;
+      gap:12px;
+    }
+    .bar{
+      height:12px;
+      border-radius:999px;
+      background:#e2e8f0;
+      overflow:hidden;
+      border:1px solid rgba(0,0,0,.05);
+    }
+    .fill{ height:100%; width:0%; }
+    .fill.vio{ background:var(--vio); }
+    .fill.blue{ background:var(--accent); }
+    .fill.green{ background:var(--ok); }
+
+    .status{
+      font-weight:700;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid #e2e8f0;
+      background:#f8fafc;
+    }
+
+    @media (max-width:940px){
+      .layout{ grid-template-columns:1fr; }
+      .left{ border-right:0; border-bottom:1px solid var(--line); }
+      .scene{ height:360px; }
+    }
+    .back-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin:16px;
+}
+.sim{
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(0,0,0,.12);
+  background:rgba(124,92,255,.95);
+  color:#fff;
+  cursor:pointer;
+  font-weight:800;
+  text-decoration:none;
+  transition:transform .08s ease, background .15s ease;
+}
+.sim:hover{ transform: translateY(-1px); }
+.sim:active{ transform: translateY(0px); }
+  </style>
+</head>
+<body>
+   <a href="handbook.html" class="sim back-btn">⬅Върни се обратно</a>
+  <div class="app">
+    <div class="head">
+      <h1>Симулация: Кинетична и потенциална енергия</h1>
+      <p>Променяй маса, скорост и височина и виж как се променят Eₖ и Eₚ.</p>
+    </div>
+
+    <div class="layout">
+      <div class="left">
+
+        <div class="card">
+          <h3>Параметри</h3>
+
+          <div class="row">
+            <label>Маса m (kg) <span class="val" id="mVal">5.0</span></label>
+            <input id="m" type="range" min="0.5" max="50" step="0.5" value="5" />
+          </div>
+
+          <div class="row">
+            <label>Скорост v (m/s) <span class="val" id="vVal">10.0</span></label>
+            <input id="v" type="range" min="0" max="60" step="0.5" value="10" />
+          </div>
+
+          <div class="row">
+            <label>Височина h (m) <span class="val" id="hVal">20.0</span></label>
+            <input id="h" type="range" min="0" max="100" step="1" value="20" />
+          </div>
+
+          <div class="row">
+            <label>g (m/s²) <span class="val" id="gVal">9.8</span></label>
+            <input id="g" type="range" min="1" max="20" step="0.1" value="9.8" />
+          </div>
+
+          <div class="btns">
+            <button class="primary" id="playBtn">Пусни / Пауза</button>
+            <button id="resetBtn">Нулирай</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Формули и резултати</h3>
+          <div class="formula" id="calcBox"></div>
+        </div>
+
+      </div>
+
+      <div class="right">
+        <div class="scene" id="scene">
+          <div class="ground"></div>
+          <div class="tower"></div>
+          <div class="heightMark"></div>
+          <div class="ball" id="ball">E</div>
+        </div>
+
+        <div class="bars">
+          <div class="barCard">
+            <div class="barTop"><span><b style="color:#7c3aed">Eₖ</b> Кинетична</span><span id="EkOut">—</span></div>
+            <div class="bar"><div class="fill vio" id="EkBar"></div></div>
+          </div>
+
+          <div class="barCard">
+            <div class="barTop"><span><b style="color:#2563eb">Eₚ</b> Потенциална</span><span id="EpOut">—</span></div>
+            <div class="bar"><div class="fill blue" id="EpBar"></div></div>
+          </div>
+
+          <div class="barCard">
+            <div class="barTop"><span><b style="color:#0f766e">E</b> Обща</span><span id="ETOut">—</span></div>
+            <div class="bar"><div class="fill green" id="ETBar"></div></div>
+          </div>
+        </div>
+
+        <div class="status" id="status">Статус: Готово.</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const mInput = document.getElementById("m");
+  const vInput = document.getElementById("v");
+  const hInput = document.getElementById("h");
+  const gInput = document.getElementById("g");
+
+  const mVal = document.getElementById("mVal");
+  const vVal = document.getElementById("vVal");
+  const hVal = document.getElementById("hVal");
+  const gVal = document.getElementById("gVal");
+
+  const calcBox = document.getElementById("calcBox");
+  const statusBox = document.getElementById("status");
+
+  const EkOut = document.getElementById("EkOut");
+  const EpOut = document.getElementById("EpOut");
+  const ETOut = document.getElementById("ETOut");
+
+  const EkBar = document.getElementById("EkBar");
+  const EpBar = document.getElementById("EpBar");
+  const ETBar = document.getElementById("ETBar");
+
+  const ball = document.getElementById("ball");
+  const scene = document.getElementById("scene");
+
+  const playBtn = document.getElementById("playBtn");
+  const resetBtn = document.getElementById("resetBtn");
+
+  let running = true;
+  let last = null;
+  let phase = 0; // анимация "вълна" за движението
+
+  function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
+
+  function formatJ(x){
+    if(x >= 100000) return (x/1000).toFixed(1) + " kJ";
+    if(x >= 1000) return x.toFixed(0) + " J";
+    return x.toFixed(2) + " J";
+  }
+
+  function updateUI(){
+    const m = parseFloat(mInput.value);
+    const v = parseFloat(vInput.value);
+    const h = parseFloat(hInput.value);
+    const g = parseFloat(gInput.value);
+
+    mVal.textContent = m.toFixed(1);
+    vVal.textContent = v.toFixed(1);
+    hVal.textContent = h.toFixed(1);
+    gVal.textContent = g.toFixed(1);
+
+    const Ek = 0.5 * m * v * v;
+    const Ep = m * g * h;
+    const ET = Ek + Ep;
+
+    calcBox.innerHTML =
+      `<b>Eₖ = m·v² / 2</b> = ${m.toFixed(2)} · ${v.toFixed(2)}² / 2 = <b>${Ek.toFixed(2)} J</b><br>` +
+      `<b>Eₚ = m·g·h</b> = ${m.toFixed(2)} · ${g.toFixed(2)} · ${h.toFixed(2)} = <b>${Ep.toFixed(2)} J</b><br>` +
+      `<b>E = Eₖ + Eₚ</b> = <b>${ET.toFixed(2)} J</b>`;
+
+    EkOut.textContent = formatJ(Ek);
+    EpOut.textContent = formatJ(Ep);
+    ETOut.textContent = formatJ(ET);
+
+    // барове (нормализиране към макс)
+    const maxE = Math.max(Ek, Ep, ET, 1);
+    EkBar.style.width = (Ek / maxE * 100).toFixed(1) + "%";
+    EpBar.style.width = (Ep / maxE * 100).toFixed(1) + "%";
+    ETBar.style.width = (ET / maxE * 100).toFixed(1) + "%";
+
+    // позиция на топката според h (0..100 -> пиксели)
+    const sceneH = scene.clientHeight;
+    const groundY = sceneH - 60; // горната линия на ground (прибл.)
+    const maxRise = 260; // колко високо може да се качва
+    const yBase = groundY - 46 - 12; // топката върху земята
+
+    const yFromH = clamp(h / 100, 0, 1) * maxRise;
+    let y = yBase - yFromH;
+
+    // ако е пуснато, добави малко "движение" според скоростта
+    if(running){
+      y += Math.sin(phase) * clamp(v/60, 0, 1) * 10;
+    }
+
+    ball.style.left = "130px";
+    ball.style.top = y + "px";
+    ball.textContent = "E";
+
+    statusBox.innerHTML =
+      `Eₖ = <b>${Ek.toFixed(2)} J</b>, Eₚ = <b>${Ep.toFixed(2)} J</b>, E = <b>${ET.toFixed(2)} J</b>.`;
+    statusBox.style.color = "var(--ok)";
+
+    return { m,v,h,g,Ek,Ep,ET };
+  }
+
+  function loop(ts){
+    if(!last) last = ts;
+    const dt = Math.min((ts - last)/1000, 0.05);
+    last = ts;
+
+    if(running){
+      phase += dt * 2.5; // скорост на анимацията
+    }
+    updateUI();
+    requestAnimationFrame(loop);
+  }
+
+  [mInput,vInput,hInput,gInput].forEach(inp => inp.addEventListener("input", updateUI));
+
+  playBtn.addEventListener("click", () => {
+    running = !running;
+    playBtn.textContent = running ? "Пусни / Пауза" : "Продължи";
+  });
+
+  resetBtn.addEventListener("click", () => {
+    running = true;
+    playBtn.textContent = "Пусни / Пауза";
+    mInput.value = 5;
+    vInput.value = 10;
+    hInput.value = 20;
+    gInput.value = 9.8;
+    updateUI();
+  });
+
+  updateUI();
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>
