@@ -166,7 +166,7 @@ app.get("/api/random-test", requireAuth, (req, res) => {
   if (![8, 9, 10].includes(classLevel)) return res.status(400).json({ error: "Невалиден клас." });
 
   db.all(
-    "SELECT id, class_level, topic, question, options_json, points FROM tasks WHERE class_level = ? ORDER BY RANDOM() LIMIT ?",
+    "SELECT id, class_level, topic, question, options_json, points, correct_index FROM tasks WHERE class_level = ? ORDER BY RANDOM() LIMIT ?",
     [classLevel, count],
     (err, rows) => {
       if (err) return res.status(500).json({ error: "Грешка при генериране на тест." });
@@ -177,8 +177,74 @@ app.get("/api/random-test", requireAuth, (req, res) => {
         question: t.question,
         options: JSON.parse(t.options_json),
         points: t.points,
+        correctIndex: t.correct_index,
       }));
       res.json({ tasks, classLevel, count: tasks.length });
+    }
+  );
+});
+
+app.get("/api/random-test-variants", requireAuth, (req, res) => {
+  const classLevel = Number(req.query.class);
+  const count = Math.max(1, Math.min(50, Number(req.query.count || 10)));
+  const variantsCount = Math.max(1, Math.min(3, Number(req.query.variants || 1)));
+  if (![8, 9, 10].includes(classLevel)) return res.status(400).json({ error: "Невалиден клас." });
+
+  db.all(
+    "SELECT id, class_level, topic, question, options_json, points, correct_index FROM tasks WHERE class_level = ? ORDER BY RANDOM()",
+    [classLevel],
+    (err, rows) => {
+      if (err) return res.status(500).json({ error: "Грешка при генериране на варианти." });
+      if (!rows || rows.length === 0) return res.json({ variants: [], classLevel, count: 0, variantsCount: 0 });
+
+      const allTasks = rows.map((t) => ({
+        id: t.id,
+        class_level: t.class_level,
+        topic: t.topic,
+        question: t.question,
+        options: JSON.parse(t.options_json),
+        points: t.points,
+        correctIndex: t.correct_index,
+      }));
+
+      const variants = [];
+      let cursor = 0;
+
+      for (let v = 0; v < variantsCount; v += 1) {
+        const selected = [];
+        const usedIds = new Set();
+
+        while (selected.length < count && cursor < allTasks.length) {
+          const task = allTasks[cursor++];
+          if (!usedIds.has(task.id)) {
+            usedIds.add(task.id);
+            selected.push(task);
+          }
+        }
+
+        if (selected.length < count) {
+          for (const task of allTasks) {
+            if (selected.length >= count) break;
+            if (!usedIds.has(task.id)) {
+              usedIds.add(task.id);
+              selected.push(task);
+            }
+          }
+        }
+
+        variants.push({
+          label: String.fromCharCode(1040 + v),
+          tasks: selected,
+        });
+      }
+
+      res.json({
+        variants,
+        classLevel,
+        count,
+        variantsCount: variants.length,
+        reusedTasks: allTasks.length < count * variantsCount,
+      });
     }
   );
 });

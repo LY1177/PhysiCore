@@ -1,0 +1,340 @@
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.game-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+}
+
+.game-sidebar {
+  padding: 20px;
+  border-right: 1px solid rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.15);
+}
+
+.game-sidebar h1 {
+  margin-top: 0;
+}
+
+.game-sidebar select,
+.game-sidebar button {
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+}
+
+.game-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.grid-board {
+  position: relative;
+  width: 560px;
+  height: 560px;
+  border: 2px solid #4fa3ff;
+  border-radius: 24px;
+  background:
+    linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px),
+    #0d1b2a;
+  background-size: 56px 56px;
+}
+
+.player {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  background: #ffd166;
+  transition: 0.12s ease;
+}
+
+.crystal {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #06d6a0;
+  box-shadow: 0 0 18px #06d6a0;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-card {
+  width: min(680px, 92vw);
+  background: white;
+  color: #111;
+  padding: 24px;
+  border-radius: 24px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.options-box {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.option-btn {
+  padding: 12px 14px;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  font-size: 15px;
+}
+
+.good {
+  color: #0a8f47;
+  font-weight: bold;
+}
+
+.bad {
+  color: #c62828;
+  font-weight: bold;
+}
+
+.shooter-shell {
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.top-panel {
+  display: flex;
+  gap: 16px;
+  align-items: end;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.question-panel {
+  margin-bottom: 14px;
+}
+
+.arena {
+  position: relative;
+  width: 760px;
+  max-width: 100%;
+  height: 420px;
+  border-radius: 24px;
+  border: 2px solid #4fa3ff;
+  background: #08121d;
+  overflow: hidden;
+}
+
+.falling-answer {
+  position: absolute;
+  width: 140px;
+  min-height: 70px;
+  padding: 10px;
+  border-radius: 18px;
+  background: #ffffff;
+  color: #111;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+}
+
+.falling-answer strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.message-box {
+  margin-top: 14px;
+  min-height: 24px;
+  font-weight: bold;
+}
+
+.quiz-wrap {
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.quiz-header {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.controls, .stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.quiz-card {
+  max-width: 760px;
+  padding: 24px;
+  border-radius: 24px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.blaster-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+}
+
+.blaster-sidebar {
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.14);
+  border-right: 1px solid rgba(255,255,255,0.08);
+}
+
+.blaster-sidebar h1 {
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.blaster-sidebar label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.blaster-sidebar select,
+.blaster-sidebar button {
+  width: 100%;
+  padding: 11px 12px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+}
+
+.blaster-stats,
+.blaster-help {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.blaster-main {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.blaster-topbar {
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+.blaster-topbar h2 {
+  margin: 0 0 8px;
+  font-size: 24px;
+}
+
+.blaster-topbar p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+.blaster-arena {
+  position: relative;
+  width: 900px;
+  max-width: 100%;
+  height: 560px;
+  border-radius: 26px;
+  overflow: hidden;
+  border: 2px solid rgba(110, 170, 255, 0.35);
+  background:
+    radial-gradient(circle at top, rgba(120,180,255,0.10), transparent 35%),
+    linear-gradient(to bottom, #08131f 0%, #0c1f30 100%);
+}
+
+.blaster-arena::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
+.blaster-player {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 34px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 0 18px rgba(120,180,255,0.14);
+}
+
+.falling-answer-v2 {
+  position: absolute;
+  width: 150px;
+  min-height: 72px;
+  padding: 10px 12px;
+  border-radius: 18px;
+  background: rgba(255,255,255,0.96);
+  color: #111;
+  box-shadow: 0 10px 24px rgba(0,0,0,0.22);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.answer-number {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: #dbeafe;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.answer-text {
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.bullet {
+  position: absolute;
+  width: 8px;
+  height: 18px;
+  border-radius: 999px;
+  background: #ffd54f;
+  box-shadow: 0 0 12px rgba(255, 213, 79, 0.9);
+}
+
+@media (max-width: 980px) {
+  .blaster-page {
+    grid-template-columns: 1fr;
+  }
+
+  .blaster-arena {
+    height: 500px;
+  }
+}

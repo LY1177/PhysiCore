@@ -55,8 +55,12 @@
   <section class="panel">
     <h1>📝 Тест </h1>
     <p class="lead">
-      Генерирай тест по клас със случайни въпроси от всички теми.
-      После можеш да го изтеглиш като PDF (чрез печат).
+      Генерирай тест, като избереш клас, брой въпроси и варианти.
+      Изтегли теста като PDF (чрез печат). 
+      <br>
+      Генерирай онлайн тест и се подготви.
+      <br>
+      Провери знанията си и виж резултатите.
     </p>
 
     <div class="row" style="margin-top:12px;">
@@ -79,11 +83,22 @@
           <option value="20">20</option>
         </select>
       </div>
+
+      <div class="field" style="min-width:220px;">
+        <label>Брой варианти</label>
+        <select class="input" id="testVariants">
+          <option value="1" selected>1 вариант</option>
+          <option value="2">2 варианта</option>
+          <option value="3">3 варианта</option>
+        </select>
+      </div>
     </div>
 
     <div class="row" style="margin-top:10px;">
       <button class="btn primary" id="btnGenTest">Генерирай тест</button>
       <button class="btn ghost" id="btnPdf" disabled>Изтегли PDF</button>
+      <button class="btn ghost" id="btnAnswers" disabled>Покажи таблица с отговорите</button>
+      <button class="btn primary" id="btnOnlineTest">Онлайн тест</button>
       <span class="hint" id="testHint"></span>
     </div>
 
@@ -92,6 +107,8 @@
     <div id="testArea" class="task-area">
       <div class="empty">Натисни „Генерирай тест“, за да се появят въпросите.</div>
     </div>
+
+    <div id="answersArea"></div>
   </section>
 </main>
 <footer class="footer">

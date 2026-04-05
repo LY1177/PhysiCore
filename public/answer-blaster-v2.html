@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Изстреляй правилния отговор</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/games.css">
+</head>
+<body>
+  <div class="blaster-page">
+    <aside class="blaster-sidebar">
+      <a href="igra.html" class="sim back-btn">⬅Върни се обратно</a>
+      <br>
+      <br>
+      <h1>Изстреляй правилния отговор</h1>
+
+      <label for="classLevel">Клас</label>
+      <select id="classLevel">
+        <option value="8">8 клас</option>
+        <option value="9">9 клас</option>
+        <option value="10">10 клас</option>
+      </select>
+
+      <label for="topicSelect">Тема</label>
+      <select id="topicSelect"></select>
+
+      <button id="startBtn">Старт</button>
+
+      <div class="blaster-stats">
+        <p>Точки: <span id="score">0</span></p>
+        <p>Животи: <span id="lives">3</span></p>
+        <p>Рунд: <span id="round">0</span></p>
+      </div>
+
+      <div class="blaster-help">
+        <p><strong>Управление:</strong></p>
+        <p>← → за движение</p>
+        <p>Space за стрелба</p>
+      </div>
+    </aside>
+
+    <main class="blaster-main">
+      <div class="blaster-topbar">
+        <h2 id="questionText">Избери клас и тема, после натисни „Старт“.</h2>
+        <p id="messageText">Уцели правилния отговор.</p>
+      </div>
+
+      <div id="arena" class="blaster-arena">
+        <div id="player" class="blaster-player">🚀</div>
+      </div>
+    </main>
+  </div>
+
+  <script src="/game-db.js"></script>
+  <script src="/answer-blaster-v2.js"></script>
+</body>
+</html>

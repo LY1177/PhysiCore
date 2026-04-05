@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ловец на формули</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="games.css">
+</head>
+<body>
+  <div class="game-page">
+    <aside class="game-sidebar">
+      <a href="igra.html" class="sim back-btn">⬅Върни се обратно</a>
+      <br>
+      <br>
+      <h1>Ловец на формули</h1>
+
+      <label>Клас</label>
+      <select id="classLevel">
+        <option value="8">8 клас</option>
+        <option value="9">9 клас</option>
+        <option value="10">10 клас</option>
+      </select>
+
+      <label>Теми (Ctrl + Click)</label>
+      <select id="topics" multiple size="6"></select>
+
+      <button id="loadBtn">Зареди игра</button>
+
+      <div class="game-stats">
+        <p>Точки: <span id="score">0</span></p>
+        <p>Събрани клетки: <span id="collected">0</span>/6</p>
+      </div>
+
+      <p class="hint">Движение: стрелки ↑ ↓ ← →</p>
+    </aside>
+
+    <main class="game-main">
+      <div id="gameBoard" class="grid-board">
+        <div id="player" class="player"></div>
+      </div>
+    </main>
+  </div>
+
+  <div id="questionModal" class="modal hidden">
+    <div class="modal-card">
+      <h2>Физична задача</h2>
+      <p id="questionText"></p>
+      <div id="optionsBox" class="options-box"></div>
+      <p id="resultText"></p>
+      <button id="closeModalBtn" class="hidden">Продължи</button>
+    </div>
+  </div>
+
+  <script src="/game-db.js"></script>
+  <script src="/formula-hunter.js"></script>
+</body>
+</html>

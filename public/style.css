@@ -792,3 +792,22 @@ input[type="submit"]:active {
   color: white;
 }
 
+.game-card {
+  padding: 20px;
+  border-radius: 20px;
+  background: linear-gradient(145deg, #0f1f2e, #0a1622);
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: 0.2s;
+}
+
+.game-card:hover {
+  transform: translateY(-4px);
+}
+
+.game-card button {
+  margin-top: 10px;
+  padding: 10px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
