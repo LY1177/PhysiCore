@@ -79,10 +79,17 @@ body:has(.formula-topbar) .game-main {
   width: 44px;
   height: 44px;
   border-radius: 14px;
-  background: #ffd166;
+  background: #ffffff;
   transition: 0.12s ease;
+  opacity: 0;
 }
-
+.player1{
+  position: absolute;
+  width: 44px;
+  height:44px;
+  font-size: 38px;
+  text-align: center;
+}
 .crystal {
   position: absolute;
   width: 32px;
@@ -419,4 +426,81 @@ body:has(.formula-topbar) .formula-topbar h2 {
     grid-row: 3;
     padding: 16px;
   }
+}
+
+
+.modal-question {
+  margin: 8px 0 4px;
+  font-size: 1.02rem;
+  line-height: 1.5;
+}
+
+.modal-card .mjx-container {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.option-btn .mjx-container {
+  display: inline-block !important;
+}
+
+
+.game-sidebar select[multiple] {
+  min-height: 160px;
+}
+
+.topics-status {
+  margin: -6px 0 14px;
+  font-size: 14px;
+  line-height: 1.4;
+  opacity: 0.95;
+}
+
+.topics-status.is-error {
+  color: #ffb4b4;
+}
+
+.topics-status.is-success {
+  color: #baf7cf;
+}
+
+.modal-card {
+  box-shadow: 0 20px 48px rgba(0,0,0,0.28);
+}
+
+.option-btn {
+  background: #f7f9fc;
+  color: #111;
+  text-align: left;
+}
+
+.option-btn:hover:not(:disabled) {
+  background: #eef4ff;
+}
+
+.option-btn:disabled {
+  opacity: 0.72;
+  cursor: default;
+}
+
+.option-letter {
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+#closeModalBtn {
+    background: linear-gradient(135deg, #7b5cff, #5a3df0);
+    color: white;
+    border: none;
+
+    border-radius: 14px;
+
+    padding: 14px 28px;   /* по-голям размер */
+    font-size: 18px;      /* по-голям текст */
+    font-weight: 600;
+
+    cursor: pointer;
+
+    box-shadow: 0 6px 14px rgba(90, 61, 240, 0.3);
 }

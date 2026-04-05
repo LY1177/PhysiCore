@@ -47,16 +47,42 @@ function renderTasks(tasks){
 
   let idx = 0;
 
+  const isMatchingTask = (task) => task && task.type === "matching" && task.options && !Array.isArray(task.options);
+
+  const buildMatchingHtml = (task) => {
+    const left = Array.isArray(task.options?.left) ? task.options.left : [];
+    const right = Array.isArray(task.options?.right) ? task.options.right : [];
+
+    return `
+      <div class="matching-wrap" style="display:grid; gap:12px;">
+        ${left.map((item, li) => `
+          <div class="row" style="display:grid; grid-template-columns: minmax(0,1fr) 220px; gap:12px; align-items:center;">
+            <div class="opt" style="cursor:default; text-align:left;">${li + 1}. ${item}</div>
+            <select class="input matching-select" data-left-index="${li}">
+              <option value="">Избери съответствие</option>
+              ${right.map((option, ri) => `<option value="${ri}">${option}</option>`).join("")}
+            </select>
+          </div>
+        `).join("")}
+        <div class="row">
+          <button class="btn primary" id="btnSubmitMatching">Провери съвпаденията</button>
+        </div>
+      </div>
+    `;
+  };
+
   const renderOne = () => {
     const t = tasks[idx];
     qs("#counter").textContent = `${idx + 1} / ${tasks.length}`;
 
-    const optsHtml = t.options
-      .map(
-        (o, oi) =>
-          `<button class="opt" data-task="${t.id}" data-idx="${oi}">${String.fromCharCode(65 + oi)}. ${o}</button>`
-      )
-      .join("");
+    const bodyHtml = isMatchingTask(t)
+      ? buildMatchingHtml(t)
+      : `<div class="optgrid">${(t.options || [])
+          .map(
+            (o, oi) =>
+              `<button class="opt" data-task="${t.id}" data-idx="${oi}">${String.fromCharCode(65 + oi)}. ${o}</button>`
+          )
+          .join("")}</div>`;
 
     area.innerHTML = `
       <div class="task-nav row" style="justify-content:space-between; align-items:center; gap:10px;">
@@ -67,12 +93,11 @@ function renderTasks(tasks){
 
       <div class="task-card" data-card="${t.id}">
         <div class="q">${idx + 1}) ${t.question}</div>
-        <div class="optgrid">${optsHtml}</div>
+        ${bodyHtml}
         <div class="explain hidden" id="ex_${t.id}"></div>
       </div>
     `;
 
- 
     typesetMath(area);
 
     const btnPrev = qs("#btnPrev");
@@ -84,12 +109,55 @@ function renderTasks(tasks){
       if (idx < tasks.length - 1) { idx += 1; renderOne(); }
     });
 
+    if (isMatchingTask(t)) {
+      qs("#btnSubmitMatching")?.addEventListener("click", async () => {
+        const taskId = t.id;
+        const selects = Array.from(area.querySelectorAll(".matching-select"));
+        const chosenMatches = {};
+        let hasEmpty = false;
+
+        selects.forEach((sel) => {
+          const leftIndex = sel.dataset.leftIndex;
+          if (sel.value === "") hasEmpty = true;
+          chosenMatches[leftIndex] = sel.value === "" ? "" : Number(sel.value);
+        });
+
+        const ex = qs(`#ex_${taskId}`);
+        if (hasEmpty) {
+          ex.classList.remove("hidden");
+          ex.textContent = "Избери съответствие за всеки елемент.";
+          return;
+        }
+
+        selects.forEach((sel) => (sel.disabled = true));
+        const submitBtn = qs("#btnSubmitMatching");
+        if (submitBtn) submitBtn.disabled = true;
+
+        try {
+          const res = await api("/api/submit", "POST", { taskId, chosenMatches });
+          ex.classList.remove("hidden");
+          ex.innerHTML = `
+            <b>${res.isCorrect ? "Верен отговор ✅" : "Грешен отговор ❌"}</b>
+            • Точки: <b>${res.pointsEarned}</b><br/>
+            ${res.explanation}
+          `;
+          typesetMath(ex);
+          await refreshStats();
+        } catch (err) {
+          ex.classList.remove("hidden");
+          ex.textContent = err.message;
+          selects.forEach((sel) => (sel.disabled = false));
+          if (submitBtn) submitBtn.disabled = false;
+        }
+      });
+      return;
+    }
+
     area.querySelectorAll(".opt").forEach(btn => {
       btn.addEventListener("click", async () => {
         const taskId = Number(btn.dataset.task);
         const chosenIndex = Number(btn.dataset.idx);
 
-        
         const card = area.querySelector(`[data-card="${taskId}"]`);
         const opts = card.querySelectorAll(".opt");
         opts.forEach(o => (o.disabled = true));

@@ -122,6 +122,60 @@ app.get("/api/me", (req, res) => {
 
 /* ---------------- TASKS ---------------- */
 
+
+function parseTaskOptions(optionsJson) {
+  try {
+    return JSON.parse(optionsJson);
+  } catch {
+    return [];
+  }
+}
+
+function detectTaskType(parsedOptions) {
+  if (Array.isArray(parsedOptions)) {
+    if (
+      parsedOptions.length === 2 &&
+      ((parsedOptions[0] === "Вярно" && parsedOptions[1] === "Грешно") ||
+        (parsedOptions[0] === "True" && parsedOptions[1] === "False"))
+    ) {
+      return "true-false";
+    }
+    return "multiple-choice";
+  }
+
+  if (
+    parsedOptions &&
+    typeof parsedOptions === "object" &&
+    Array.isArray(parsedOptions.left) &&
+    Array.isArray(parsedOptions.right) &&
+    parsedOptions.matches &&
+    typeof parsedOptions.matches === "object"
+  ) {
+    return "matching";
+  }
+
+  return "multiple-choice";
+}
+
+function normalizeTaskRow(t) {
+  const parsedOptions = parseTaskOptions(t.options_json);
+  return {
+    id: t.id,
+    class_level: t.class_level,
+    topic: t.topic,
+    question: t.question,
+    options: parsedOptions,
+    points: t.points,
+    correctIndex: t.correct_index,
+    type: detectTaskType(parsedOptions),
+  };
+}
+
+function isPlainOptionsTask(task) {
+  return Array.isArray(task.options);
+}
+
+
 app.get("/api/topics", requireAuth, (req, res) => {
   const classLevel = Number(req.query.class);
   if (![8, 9, 10].includes(classLevel)) return res.status(400).json({ error: "Невалиден клас." });
@@ -142,18 +196,11 @@ app.get("/api/tasks", requireAuth, (req, res) => {
   if (![8, 9, 10].includes(classLevel) || !topic) return res.status(400).json({ error: "Невалидни параметри." });
 
   db.all(
-    "SELECT id, class_level, topic, question, options_json, points FROM tasks WHERE class_level = ? AND topic = ? ORDER BY id ASC",
+    "SELECT id, class_level, topic, question, options_json, points FROM tasks WHERE class_level = ? AND topic = ? ORDER BY CASE WHEN options_json LIKE '{\"left\":%' THEN 1 ELSE 0 END ASC, id ASC",
     [classLevel, topic],
     (err, rows) => {
       if (err) return res.status(500).json({ error: "Грешка при задачи." });
-      const tasks = rows.map((t) => ({
-        id: t.id,
-        class_level: t.class_level,
-        topic: t.topic,
-        question: t.question,
-        options: JSON.parse(t.options_json),
-        points: t.points,
-      }));
+      const tasks = rows.map(normalizeTaskRow);
       res.json({ tasks });
     }
   );
@@ -166,19 +213,11 @@ app.get("/api/random-test", requireAuth, (req, res) => {
   if (![8, 9, 10].includes(classLevel)) return res.status(400).json({ error: "Невалиден клас." });
 
   db.all(
-    "SELECT id, class_level, topic, question, options_json, points, correct_index FROM tasks WHERE class_level = ? ORDER BY RANDOM() LIMIT ?",
-    [classLevel, count],
+    "SELECT id, class_level, topic, question, options_json, points, correct_index FROM tasks WHERE class_level = ? ORDER BY RANDOM()",
+    [classLevel],
     (err, rows) => {
       if (err) return res.status(500).json({ error: "Грешка при генериране на тест." });
-      const tasks = rows.map((t) => ({
-        id: t.id,
-        class_level: t.class_level,
-        topic: t.topic,
-        question: t.question,
-        options: JSON.parse(t.options_json),
-        points: t.points,
-        correctIndex: t.correct_index,
-      }));
+      const tasks = (rows || []).map(normalizeTaskRow).slice(0, count);
       res.json({ tasks, classLevel, count: tasks.length });
     }
   );
@@ -197,15 +236,7 @@ app.get("/api/random-test-variants", requireAuth, (req, res) => {
       if (err) return res.status(500).json({ error: "Грешка при генериране на варианти." });
       if (!rows || rows.length === 0) return res.json({ variants: [], classLevel, count: 0, variantsCount: 0 });
 
-      const allTasks = rows.map((t) => ({
-        id: t.id,
-        class_level: t.class_level,
-        topic: t.topic,
-        question: t.question,
-        options: JSON.parse(t.options_json),
-        points: t.points,
-        correctIndex: t.correct_index,
-      }));
+      const allTasks = rows.map(normalizeTaskRow);
 
       const variants = [];
       let cursor = 0;
@@ -252,16 +283,45 @@ app.get("/api/random-test-variants", requireAuth, (req, res) => {
 app.post("/api/submit", requireAuth, (req, res) => {
   const userId = req.session.user.id;
   const taskId = Number(req.body.taskId);
-  const chosenIndex = Number(req.body.chosenIndex);
+  const chosenIndexRaw = req.body.chosenIndex;
+  const chosenMatches = req.body.chosenMatches;
 
-  if (!taskId || Number.isNaN(chosenIndex) || chosenIndex < 0 || chosenIndex > 10) {
+  if (!taskId) {
     return res.status(400).json({ error: "Невалидни данни." });
   }
 
-  db.get("SELECT id, correct_index, explanation, points FROM tasks WHERE id = ?", [taskId], (err, task) => {
+  db.get("SELECT id, correct_index, explanation, points, options_json FROM tasks WHERE id = ?", [taskId], (err, task) => {
     if (err || !task) return res.status(404).json({ error: "Задачата не е намерена." });
 
-    const isCorrect = chosenIndex === task.correct_index ? 1 : 0;
+    const parsedOptions = parseTaskOptions(task.options_json);
+    const taskType = detectTaskType(parsedOptions);
+
+    let isCorrect = 0;
+    let chosenIndexForStorage = -1;
+
+    if (taskType === "matching") {
+      if (!chosenMatches || typeof chosenMatches !== "object") {
+        return res.status(400).json({ error: "Липсват избраните съвпадения." });
+      }
+
+      const expected = parsedOptions.matches || {};
+      const leftCount = Array.isArray(parsedOptions.left) ? parsedOptions.left.length : 0;
+      const hasAllAnswers = Array.from({ length: leftCount }, (_, idx) => String(idx)).every((key) => chosenMatches[key] !== undefined && chosenMatches[key] !== null && chosenMatches[key] !== "");
+
+      if (!hasAllAnswers) {
+        return res.status(400).json({ error: "Избери съвпадение за всеки елемент." });
+      }
+
+      isCorrect = Object.keys(expected).every((key) => Number(chosenMatches[key]) === Number(expected[key])) ? 1 : 0;
+    } else {
+      const chosenIndex = Number(chosenIndexRaw);
+      if (Number.isNaN(chosenIndex) || chosenIndex < 0 || chosenIndex > 10) {
+        return res.status(400).json({ error: "Невалиден отговор." });
+      }
+      chosenIndexForStorage = chosenIndex;
+      isCorrect = chosenIndex === task.correct_index ? 1 : 0;
+    }
+
     const pointsEarned = isCorrect ? task.points : 0;
 
     db.run(
@@ -272,10 +332,10 @@ app.post("/api/submit", requireAuth, (req, res) => {
          is_correct=excluded.is_correct,
          points_earned=excluded.points_earned,
          answered_at=datetime('now')`,
-      [userId, taskId, chosenIndex, isCorrect, pointsEarned],
+      [userId, taskId, chosenIndexForStorage, isCorrect, pointsEarned],
       (e2) => {
         if (e2) return res.status(500).json({ error: "Неуспешно записване на резултат." });
-        res.json({ ok: true, isCorrect: !!isCorrect, pointsEarned, explanation: task.explanation });
+        res.json({ ok: true, isCorrect: !!isCorrect, pointsEarned, explanation: task.explanation, type: taskType });
       }
     );
   });
@@ -384,10 +444,6 @@ app.get("/handbook", (req, res) => {
 });
 app.get("/test", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "test.html"));
-});
-
-app.get("/quiz", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "quiz.html"));
 });
 
 app.get("/igra", (req, res) => {

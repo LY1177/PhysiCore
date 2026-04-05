@@ -20,12 +20,16 @@ async function fetchTasksByClassAndTopics(classLevel, topics = []) {
   return shuffleArray(allTasks);
 }
 
-async function submitAnswer(taskId, chosenIndex) {
+async function submitAnswer(taskId, chosenIndex, chosenMatches) {
+  const payload = { taskId };
+  if (chosenMatches && typeof chosenMatches === "object") payload.chosenMatches = chosenMatches;
+  else payload.chosenIndex = chosenIndex;
+
   const res = await fetch("/api/submit", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify({ taskId, chosenIndex })
+    body: JSON.stringify(payload)
   });
 
   const data = await res.json().catch(() => ({}));

@@ -2,22 +2,33 @@
 <html lang="bg">
 <head>
   <meta charset="UTF-8" />
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['\(', '\)'], ['$', '$']],
+        displayMath: [['\[', '\]']],
+        processEscapes: true
+      },
+      options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+    };
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ловец на формули</title>
+  <title>Ловец на знания</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="games.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body>
   <div class="game-page">
       <div class="formula-topbar">
-        <h2 id="questionText">Избери клас и тема, после натисни „Старт“.</h2>
-        <p id="messageText">Уцели правилния отговор.</p>
+        <h2 id="topbarTitle">Избери клас и тема, после натисни „Зареди игра“.</h2>
+        <p id="messageText">Чрез движение със стрелки ↑ ↓ ← → достигни до зеления кръг. Условието на задачата се показва в бялото поле, а не в горния бар.</p>
       </div>
     <aside class="game-sidebar">
       <a href="igra.html" class="sim back-btn">⬅Върни се обратно</a>
       <br>
       <br>
-      <h1>Ловец на формули</h1>
+      <h1>Ловец на знания</h1>
 
       <label>Клас</label>
       <select id="classLevel">
@@ -26,22 +37,23 @@
         <option value="10">10 клас</option>
       </select>
 
-      <label>Теми (Ctrl + Click)</label>
-      <select id="topics" multiple size="6"></select>
+      <label>Теми</label>
+      <select id="topics" multiple size="6" aria-label="Теми"></select>
+      <p id="topicsStatus" class="topics-status">Зареждане на темите…</p>
 
       <button id="loadBtn">Зареди игра</button>
 
       <div class="game-stats">
         <p>Точки: <span id="score">0</span></p>
-        <p>Събрани клетки: <span id="collected">0</span>/6</p>
+        <p>Събрани клетки: <span id="collected">0</span></p>
       </div>
 
-      <p class="hint">Движение: стрелки ↑ ↓ ← →</p>
+     
     </aside>
 
     <main class="game-main">
       <div id="gameBoard" class="grid-board">
-        <div id="player" class="player"></div>
+        <div id="player" class="player1">💡</div>
       </div>
     </main>
   </div>
@@ -49,7 +61,7 @@
   <div id="questionModal" class="modal hidden">
     <div class="modal-card">
       <h2>Физична задача</h2>
-      <p id="questionText"></p>
+      <div id="modalQuestionText" class="modal-question"></div>
       <div id="optionsBox" class="options-box"></div>
       <p id="resultText"></p>
       <button id="closeModalBtn" class="hidden">Продължи</button>

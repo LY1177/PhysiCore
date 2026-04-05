@@ -38,6 +38,36 @@ function answerLetter(index) {
   return String.fromCharCode(65 + Number(index || 0));
 }
 
+function shuffleArray(items) {
+  const copy = Array.isArray(items) ? [...items] : [];
+  for (let i = copy.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
+}
+
+function isMatchingTask(task) {
+  return task && task.type === "matching" && task.options && !Array.isArray(task.options);
+}
+
+function getMatchingDisplay(task) {
+  const left = Array.isArray(task?.options?.left) ? task.options.left : [];
+  const right = Array.isArray(task?.options?.right) ? task.options.right : [];
+  const matches = task?.options?.matches && typeof task.options.matches === "object" ? task.options.matches : {};
+  const rightItems = right.map((label, originalIndex) => ({ label, originalIndex }));
+
+  let seed = Number(task?.id || 1);
+  for (let i = rightItems.length - 1; i > 0; i -= 1) {
+    seed = (seed * 9301 + 49297) % 233280;
+    const j = seed % (i + 1);
+    [rightItems[i], rightItems[j]] = [rightItems[j], rightItems[i]];
+  }
+
+  const byOriginal = new Map(rightItems.map((item, index) => [item.originalIndex, index]));
+  return { left, rightItems, matches, byOriginal };
+}
+
 function renderVariants(variants) {
   const area = qs("#testArea");
 
@@ -51,13 +81,25 @@ function renderVariants(variants) {
     .map((variant, vIdx) => {
       const tasksHtml = (variant.tasks || [])
         .map((t, idx) => {
-          const opts = (t.options || [])
-            .map((o, oi) => `<div class="pill" style="width:100%;">${String.fromCharCode(65 + oi)}. ${o}</div>`)
-            .join("");
+          const bodyHtml = isMatchingTask(t)
+            ? (() => {
+                const { left, rightItems } = getMatchingDisplay(t);
+                const leftHtml = left.map((item, li) => `<div class="pill" style="width:100%; text-align:left;">${li + 1}. ${item}</div>`).join("");
+                const rightHtml = rightItems.map((item, ri) => `<div class="pill" style="width:100%; text-align:left;">${answerLetter(ri)}. ${item.label}</div>`).join("");
+                return `
+                  <div class="row" style="gap:14px; flex-wrap:wrap; align-items:flex-start;">
+                    <div style="flex:1 1 260px;"><div class="subtle" style="margin-bottom:8px;">Свържи елементите отляво с правилните отдясно.</div>${leftHtml}</div>
+                    <div style="flex:1 1 260px;">${rightHtml}</div>
+                  </div>
+                `;
+              })()
+            : `<div class="optgrid">${(t.options || [])
+                .map((o, oi) => `<div class="pill" style="width:100%;">${String.fromCharCode(65 + oi)}. ${o}</div>`)
+                .join("")}</div>`;
           return `
             <div class="task-card">
               <div class="q">${idx + 1}) ${t.question} <span class="subtle" style="font-weight:600;">(${t.topic})</span></div>
-              <div class="optgrid">${opts}</div>
+              ${bodyHtml}
             </div>
           `;
         })
@@ -92,13 +134,21 @@ function renderAnswersTable() {
         ${currentVariants
           .map((variant, vIdx) => {
             const rows = (variant.tasks || [])
-              .map(
-                (task, idx) => `
+              .map((task, idx) => {
+                const answerText = isMatchingTask(task)
+                  ? (() => {
+                      const { left, matches, byOriginal } = getMatchingDisplay(task);
+                      return left
+                        .map((_, li) => `${li + 1}-${answerLetter(byOriginal.get(Number(matches[String(li)] ?? matches[li] ?? -1)) ?? 0)}`)
+                        .join(", ");
+                    })()
+                  : answerLetter(task.correctIndex);
+                return `
                   <tr>
                     <td style="padding:8px 10px; border:1px solid #d9d9d9; text-align:center; color:#000; background:#fff;">${idx + 1}</td>
-                    <td style="padding:8px 10px; border:1px solid #d9d9d9; text-align:center; font-weight:700; color:#000; background:#fff;">${answerLetter(task.correctIndex)}</td>
-                  </tr>`
-              )
+                    <td style="padding:8px 10px; border:1px solid #d9d9d9; text-align:center; font-weight:700; color:#000; background:#fff;">${answerText}</td>
+                  </tr>`;
+              })
               .join("");
             return `
               <div style="flex:1 1 220px; min-width:220px; color:#000;">
@@ -240,13 +290,25 @@ function buildPrintHtml({ classLevel, variants }) {
     .map((variant, vIdx) => {
       const qHtml = (variant.tasks || [])
         .map((t, idx) => {
-          const opts = (t.options || [])
-            .map((o, oi) => `<li>${String.fromCharCode(65 + oi)}. ${renderPrintTextWithMath(o)}</li>`)
-            .join("");
+          const bodyHtml = isMatchingTask(t)
+            ? (() => {
+                const { left, rightItems } = getMatchingDisplay(t);
+                const leftHtml = left.map((item, li) => `<li>${li + 1}. ${renderPrintTextWithMath(item)}</li>`).join("");
+                const rightHtml = rightItems.map((item, ri) => `<li>${answerLetter(ri)}. ${renderPrintTextWithMath(item.label)}</li>`).join("");
+                return `
+                  <div class="row" style="gap:18px; flex-wrap:wrap; align-items:flex-start;">
+                    <div style="flex:1 1 240px;"><strong>Лява колона</strong><ul class="opts">${leftHtml}</ul></div>
+                    <div style="flex:1 1 240px;"><strong>Дясна колона</strong><ul class="opts">${rightHtml}</ul></div>
+                  </div>
+                `;
+              })()
+            : `<ul class="opts">${(t.options || [])
+                .map((o, oi) => `<li>${String.fromCharCode(65 + oi)}. ${renderPrintTextWithMath(o)}</li>`)
+                .join("")}</ul>`;
           return `
             <div class="qblock">
               <div class="qtitle">${idx + 1}. ${renderPrintTextWithMath(t.question)}</div>
-              <ul class="opts">${opts}</ul>
+              ${bodyHtml}
               <div class="meta">Тема: ${escapeHtml(String(t.topic || ""))}</div>
             </div>
           `;
@@ -412,6 +474,13 @@ function toggleAnswers() {
   renderAnswersTable();
 }
 
+
+function goToQuizMode() {
+  const classLevel = qs("#testClass")?.value || "8";
+  const count = qs("#testCount")?.value || "10";
+  location.href = `/quiz.html?class=${encodeURIComponent(classLevel)}&count=${encodeURIComponent(count)}&autostart=1`;
+}
+
 function downloadPdf() {
   const classLevel = Number(qs("#testClass").value);
   if (!currentVariants.length) return;
@@ -434,14 +503,44 @@ function renderOnlineQuestion() {
   const selected = onlineTestState.answers[onlineTestState.currentIndex];
   const isLast = onlineTestState.currentIndex === onlineTestState.tasks.length - 1;
 
-  const optionsHtml = (task.options || [])
-    .map((option, idx) => `
-      <label style="display:block; margin:10px 0; padding:12px 14px; border:1px solid rgba(255,255,255,.18); border-radius:14px; background:rgba(255,255,255,.04); cursor:pointer;">
-        <input type="radio" name="onlineAnswer" value="${idx}" ${selected === idx ? "checked" : ""} style="margin-right:10px;">
-        <span>${String.fromCharCode(65 + idx)}. ${option}</span>
-      </label>
-    `)
-    .join("");
+  let answerHtml = "";
+  if (isMatchingTask(task)) {
+    const matchingDisplay = onlineTestState.matchingDisplays?.[task.id] || getMatchingDisplay(task);
+    onlineTestState.matchingDisplays = onlineTestState.matchingDisplays || {};
+    onlineTestState.matchingDisplays[task.id] = matchingDisplay;
+    const chosenMatches = selected && typeof selected === "object" ? selected : {};
+
+    answerHtml = `
+      <form id="onlineAnswerForm" style="display:grid; gap:12px;">
+        ${matchingDisplay.left.map((item, idx) => `
+          <div class="row" style="display:grid; grid-template-columns:minmax(0,1fr) 220px; gap:12px; align-items:center;">
+            <div class="pill" style="width:100%; text-align:left;">${idx + 1}. ${item}</div>
+            <select class="input online-matching-select" data-left-index="${idx}">
+              <option value="">Избери съответствие</option>
+              ${matchingDisplay.rightItems.map((option, optIdx) => `<option value="${optIdx}" ${String(chosenMatches[idx] ?? "") === String(optIdx) ? "selected" : ""}>${answerLetter(optIdx)}. ${option.label}</option>`).join("")}
+            </select>
+          </div>
+        `).join("")}
+      </form>
+    `;
+  } else {
+    const optionsHtml = (task.options || [])
+      .map((option, idx) => `
+        <label style="display:block; margin:10px 0; padding:12px 14px; border:1px solid rgba(255,255,255,.18); border-radius:14px; background:rgba(255,255,255,.04); cursor:pointer;">
+          <input type="radio" name="onlineAnswer" value="${idx}" ${selected === idx ? "checked" : ""} style="margin-right:10px;">
+          <span>${String.fromCharCode(65 + idx)}. ${option}</span>
+        </label>
+      `)
+      .join("");
+    answerHtml = `<form id="onlineAnswerForm">${optionsHtml}</form>`;
+  }
+
+  const hasAnswer = () => {
+    const currentAnswer = onlineTestState.answers[onlineTestState.currentIndex];
+    return isMatchingTask(task)
+      ? currentAnswer && typeof currentAnswer === "object" && Object.keys(currentAnswer).length === (Array.isArray(task.options?.left) ? task.options.left.length : 0) && Object.values(currentAnswer).every((value) => value !== "" && value != null)
+      : currentAnswer != null;
+  };
 
   area.innerHTML = `
     <section class="panel" style="margin-bottom:18px;">
@@ -452,26 +551,40 @@ function renderOnlineQuestion() {
       <div class="task-card">
         <div class="q" style="margin-bottom:10px; font-size:1.05rem;">${onlineTestState.currentIndex + 1}) ${task.question}</div>
         <div class="subtle" style="margin-bottom:12px; font-weight:600;">Тема: ${escapeHtml(String(task.topic || ""))}</div>
-        <form id="onlineAnswerForm">${optionsHtml}</form>
+        ${answerHtml}
         <div class="row" style="justify-content:space-between; gap:12px; margin-top:14px; align-items:center;">
-          <span class="hint">След като продължиш напред, няма да можеш да се върнеш към този въпрос.</span>
-          <button class="btn primary" id="btnOnlineNext" ${selected == null ? "disabled" : ""}>${isLast ? "Завърши теста" : "Напред"}</button>
+          <span class="hint">${isMatchingTask(task) ? "Избери съответствие за всеки елемент и продължи напред." : "След като продължиш напред, няма да можеш да се върнеш към този въпрос."}</span>
+          <button class="btn primary" id="btnOnlineNext" ${hasAnswer() ? "" : "disabled"}>${isLast ? "Завърши теста" : "Напред"}</button>
         </div>
       </div>
     </section>
   `;
 
   const form = qs("#onlineAnswerForm");
-  form?.addEventListener("change", (e) => {
-    const input = e.target.closest('input[name="onlineAnswer"]');
-    if (!input) return;
-    onlineTestState.answers[onlineTestState.currentIndex] = Number(input.value);
-    const nextBtn = qs("#btnOnlineNext");
-    if (nextBtn) nextBtn.disabled = false;
-  });
+  if (isMatchingTask(task)) {
+    form?.addEventListener("change", () => {
+      const selectedMap = {};
+      form.querySelectorAll(".online-matching-select").forEach((select) => {
+        const key = select.dataset.leftIndex;
+        if (select.value !== "") selectedMap[key] = Number(select.value);
+      });
+      onlineTestState.answers[onlineTestState.currentIndex] = selectedMap;
+      const expectedCount = Array.isArray(task.options?.left) ? task.options.left.length : 0;
+      const nextBtn = qs("#btnOnlineNext");
+      if (nextBtn) nextBtn.disabled = Object.keys(selectedMap).length !== expectedCount;
+    });
+  } else {
+    form?.addEventListener("change", (e) => {
+      const input = e.target.closest('input[name="onlineAnswer"]');
+      if (!input) return;
+      onlineTestState.answers[onlineTestState.currentIndex] = Number(input.value);
+      const nextBtn = qs("#btnOnlineNext");
+      if (nextBtn) nextBtn.disabled = false;
+    });
+  }
 
   qs("#btnOnlineNext")?.addEventListener("click", () => {
-    if (onlineTestState.answers[onlineTestState.currentIndex] == null) return;
+    if (!hasAnswer()) return;
     if (isLast) {
       finishOnlineTest();
       return;
@@ -484,6 +597,43 @@ function renderOnlineQuestion() {
 }
 
 function buildReviewCard(task, idx, userAnswer) {
+  if (isMatchingTask(task)) {
+    const matchingDisplay = onlineTestState.matchingDisplays?.[task.id] || getMatchingDisplay(task);
+    const matches = matchingDisplay.matches || {};
+    const selectedMap = userAnswer && typeof userAnswer === "object" ? userAnswer : {};
+    const rows = matchingDisplay.left.map((item, leftIdx) => {
+      const expectedOriginal = Number(matches[String(leftIdx)] ?? matches[leftIdx]);
+      const expectedShown = matchingDisplay.byOriginal.get(expectedOriginal);
+      const userShown = selectedMap[leftIdx];
+      const isCorrect = Number(userShown) === Number(expectedShown);
+      const userLabel = userShown == null ? "—" : `${answerLetter(userShown)}. ${matchingDisplay.rightItems[userShown]?.label || ""}`;
+      const correctLabel = expectedShown == null ? "—" : `${answerLetter(expectedShown)}. ${matchingDisplay.rightItems[expectedShown]?.label || ""}`;
+      return `
+        <li style="list-style:none; margin:8px 0; padding:10px 12px; border-radius:12px; border:1px solid ${isCorrect ? "rgba(34,197,94,.65)" : "rgba(239,68,68,.65)"}; background:${isCorrect ? "rgba(34,197,94,.18)" : "rgba(239,68,68,.18)"}; color:#fff;">
+          <strong>${leftIdx + 1}. ${item}</strong><br>
+          Твоят отговор: ${userLabel}<br>
+          Верният отговор: ${correctLabel}
+        </li>
+      `;
+    }).join("");
+
+    const isCorrectQuestion = matchingDisplay.left.every((_, leftIdx) => {
+      const expectedOriginal = Number(matches[String(leftIdx)] ?? matches[leftIdx]);
+      return Number(selectedMap[leftIdx]) === Number(matchingDisplay.byOriginal.get(expectedOriginal));
+    });
+
+    return `
+      <div class="task-card" style="margin-top:14px; border:${isCorrectQuestion ? '1px solid rgba(34,197,94,.4)' : '1px solid rgba(239,68,68,.35)'};">
+        <div class="q" style="margin-bottom:6px;">${idx + 1}) ${task.question}</div>
+        <div class="subtle" style="margin-bottom:10px; font-weight:600;">Тема: ${escapeHtml(String(task.topic || ""))}</div>
+        <div style="margin-bottom:10px; color:${isCorrectQuestion ? '#86efac' : '#fca5a5'}; font-weight:700;">
+          ${isCorrectQuestion ? 'Верен отговор' : 'Грешка в съвпаденията'}
+        </div>
+        <ul style="margin:0; padding:0;">${rows}</ul>
+      </div>
+    `;
+  }
+
   const correctIndex = Number(task.correctIndex);
   const optionItems = (task.options || [])
     .map((option, optIdx) => {
@@ -545,7 +695,18 @@ function finishOnlineTest() {
   const total = onlineTestState.tasks.length;
   let correct = 0;
   onlineTestState.tasks.forEach((task, idx) => {
-    if (Number(onlineTestState.answers[idx]) === Number(task.correctIndex)) correct += 1;
+    const answer = onlineTestState.answers[idx];
+    if (isMatchingTask(task)) {
+      const matchingDisplay = onlineTestState.matchingDisplays?.[task.id] || getMatchingDisplay(task);
+      const matches = matchingDisplay.matches || {};
+      const isCorrect = matchingDisplay.left.every((_, leftIdx) => {
+        const expectedOriginal = Number(matches[String(leftIdx)] ?? matches[leftIdx]);
+        return Number(answer?.[leftIdx]) === Number(matchingDisplay.byOriginal.get(expectedOriginal));
+      });
+      if (isCorrect) correct += 1;
+      return;
+    }
+    if (Number(answer) === Number(task.correctIndex)) correct += 1;
   });
 
   onlineTestState.finished = true;
@@ -604,6 +765,7 @@ async function startOnlineTest() {
       finished: false,
       correctCount: 0,
       percent: 0,
+      matchingDisplays: {},
     };
 
     hint.textContent = `Онлайн тестът е готов: ${tasks.length} въпроса.`;
@@ -619,11 +781,7 @@ async function init() {
 
   qs("#btnGenTest").addEventListener("click", generateTest);
   qs("#btnOnlineTest").addEventListener("click", startOnlineTest);
-  qs("#btnQuizMode")?.addEventListener("click", () => {
-    const classLevel = qs("#testClass")?.value || "8";
-    const count = qs("#testCount")?.value || "10";
-    location.href = `/quiz?class=${encodeURIComponent(classLevel)}&count=${encodeURIComponent(count)}`;
-  });
+  qs("#btnQuizMode")?.addEventListener("click", goToQuizMode);
   qs("#btnPdf").addEventListener("click", downloadPdf);
   qs("#btnAnswers").addEventListener("click", toggleAnswers);
 }
