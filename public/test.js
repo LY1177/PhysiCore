@@ -619,6 +619,11 @@ async function init() {
 
   qs("#btnGenTest").addEventListener("click", generateTest);
   qs("#btnOnlineTest").addEventListener("click", startOnlineTest);
+  qs("#btnQuizMode")?.addEventListener("click", () => {
+    const classLevel = qs("#testClass")?.value || "8";
+    const count = qs("#testCount")?.value || "10";
+    location.href = `/quiz?class=${encodeURIComponent(classLevel)}&count=${encodeURIComponent(count)}`;
+  });
   qs("#btnPdf").addEventListener("click", downloadPdf);
   qs("#btnAnswers").addEventListener("click", toggleAnswers);
 }

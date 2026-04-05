@@ -386,6 +386,10 @@ app.get("/test", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "test.html"));
 });
 
+app.get("/quiz", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "quiz.html"));
+});
+
 app.get("/igra", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "igra.html"));
 });
