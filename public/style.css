@@ -329,7 +329,7 @@ label{font-size:12px;color:var(--muted2)}
   box-shadow:0 14px 40px rgba(0,0,0,.35);
 }
 
-.container1{max-width:1500px;margin:0 auto;padding:22px}
+.container1{max-width:1000px;margin:0 auto;padding:22px}
 
 .footer{
   margin-top:80px;
@@ -798,6 +798,7 @@ input[type="submit"]:active {
   background: linear-gradient(145deg, #0f1f2e, #0a1622);
   border: 1px solid rgba(255,255,255,0.1);
   transition: 0.2s;
+  box-shadow: 0 20px 80px rgba(80, 38, 164, 0.6);
 }
 
 .game-card:hover {
@@ -811,3 +812,36 @@ input[type="submit"]:active {
   cursor: pointer;
 }
 
+.games-container {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.game-card:nth-child(5) {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: 50%;
+}
+
+.back-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  margin:16px;
+}
+.sim{
+  padding:12px 14px;
+  border-radius:14px;
+  border:1px solid rgba(0,0,0,.12);
+  background:rgba(124,92,255,.95);
+  color:#fff;
+  cursor:pointer;
+  font-weight:800;
+  text-decoration:none;
+  transition:transform .08s ease, background .15s ease;
+}
+.sim:hover{ transform: translateY(-1px); }
+.sim:active{ transform: translateY(0px); }

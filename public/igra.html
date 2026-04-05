@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>PhysiCore • Какво научих</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="games.css">
 </head>
 <body>
 
@@ -40,42 +41,40 @@
 </header>
 
 <main class="container1">
-      <h1>Време за игра</h1>
+      <h1 class="bubble-title">Учи и се забавлявай 🤓</h1>
   <section class="panel">
-    <div class="games-container">
-  <div class="game-card">
-    <h3>Решетка с думи</h3>
-    <button onclick="window.location.href='grid.html'">Играй</button>
+  <div class="games-container">
+    <div class="game-card">
+      <h3>Решетка с думи</h3>
+      <button onclick="window.location.href='grid.html'">Играй</button>
+    </div>
+
+    <div class="game-card">
+      <h3>Попълни липсващата дума</h3>
+      <button onclick="window.location.href='fil_in.html'">Играй</button>
+    </div>
+
+    <div class="game-card">
+      <h3>Свържи електрическата верига</h3>
+      <button onclick="window.location.href='chain.html'">Играй</button>
+    </div>
+
+    <div class="game-card">
+      <h3>Ловец на думи</h3>
+      <button onclick="window.location.href='formula-hunter.html'">Играй</button>
+    </div>
+
+    <div class="game-card">
+      <h3>Изстреляй правилния отговор</h3>
+      <button onclick="window.location.href='/answer-blaster-v2.html'">Играй</button>
+    </div>
   </div>
 
-  <div class="game-card">
-    <h3>Попълни липсващата дума</h3>
-    <button onclick="window.location.href='fil_in.html'">Играй</button>
+  <div id="gameViewer" class="hidden">
+    <button onclick="closeGame()">← Назад</button>
+    <iframe id="gameFrame"></iframe>
   </div>
-</div>
-
-<div class="game-card">
-    <h3>Свържи електрическата верига</h3>
-    <button onclick="window.location.href='chain.html'">Играй</button>
-  </div>
-</div>
-
-<div class="game-card">
-    <h3>Ловец на думи</h3>
-    <button onclick="window.location.href='formula-hunter.html'">Играй</button>
-  </div>
-
-  <div class="game-card">
-    <h3>Изстреляй правилния отговор</h3>
-    <button onclick="window.location.href='/answer-blaster-v2.html'">Играй</button>
-  </div>
-</div>
-<div id="gameViewer" class="hidden">
-  <button onclick="closeGame()">← Назад</button>
-  <iframe id="gameFrame"></iframe>
-  
-</div>
-  </section>
+</section>
 </main>
 <footer class="footer">
   <div class="footer-inner">
